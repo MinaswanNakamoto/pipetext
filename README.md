@@ -1,6 +1,6 @@
 # pipetext
 
-Easily add colors, boxes, repetitions and emojis to your terminal output using pipes(|).
+Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
 
 Install using the Ruby Gem:
 
@@ -24,7 +24,7 @@ alice = Alice.new
 alice.say("Hello world!")
 ```
 
-The gem includes a command line interface too (you can find the script in bin):
+The gem includes a command line interface too:
 ```
 > pipetext
 
