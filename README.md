@@ -4,7 +4,7 @@ Easily add colors, boxes, repetitions and emojis to your terminal output using p
 
 Install using the Ruby Gem:
 
-> gem install pipetext
+> > gem install pipetext
 
 Includes a Ruby library module which can be included in your code:
 
@@ -24,6 +24,6 @@ alice.say("Hello world!")
 
 The gem includes a command line interface too (you can find the script in bin):
 
-> pipetext
+> > pipetext
 
-> pipetext '|Ccyan|n'
+> > pipetext '|Ccyan|n'
