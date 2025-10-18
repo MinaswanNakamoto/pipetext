@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+
+require 'pipetext'
+
+pipe = Class.new.extend(PipeText)
+
+pipetext_example = '|| pipe  ||||    && ampersand    &&&&    |&Toggle (&) background color mode  ||&|&
+|ssmoke   |n||s    |wwhite          |n||W    |k&wblack text on white background&n|n    ||k&&w
+|rred     |n||r    |Rbright red     |n||R    &rred background&n      &&r
+|ggreen   |n||g    |Gbright green   |n||G    &ggreen background&n    &&g
+|bblue    |n||b    |Bbright blue    |n||B    &bblue background&n     &&b
+|ccyan    |n||c    |Cbright cyan    |n||C    &ccyan background&n     &&c
+|yyellow  |n||y    |Ybright yellow  |n||Y    &yyellow background&n   &&y
+|mmagenta |n||m    |Mbright magenta |n||M    &mmagenta background&n  &&m
+|#FFFFFF&#555555Hex RGB color codes:|n&n    Foreground ||#RRGGBB   Background      &&#RRGGBB
+|p33&pF8Palette colors (256) using Hex:|n&n    ||p33&&pF8   Clear Screen    ||!
+|K&wblack with white background&n        |n||K&&w       |@Blink|@ing        ||@
+|w&mwhite with magenta background&n      |n||w&&m       |w&mi|invert&n|i          ||i
+|s&gsmoke with green background&n        |n||s&&g       |_Underline|_d      ||_
+|r&cred with cyan background&n           |n||r&&c       |~Italic|~s         ||~
+|R&bbright red with blue background&n    |n||R&&b       |+Bold|+            ||+
+|g&ygreen with yellow background&n       |n||g&&y       |.Faint|.           ||.
+|G&rbright green with red background&n   |n||G&&r       |xCrossed out|x     ||x
+|n&nnormal color and background        ||n&&n       Escape Sequence ||\\
+Example unicode sequences:      |U2714  ||U2714     |U274c ||U274c     |u262E ||u262E     |u1f48e ||u1f48e     |u1f49c ||u1f49c
+
+Single or double line box mode with ||- or ||=
+
+|15 |-[--v--] |=[--v--] |o[--v--]|O  <-- Draw this with this:  ||15 ||-[--v--] ||=[--v--] ||o[--v--]
+|15 |-!  !  ! |=!  !  ! |o!  !  !|O                            ||15 ||-!  !  ! ||=!  !  ! ||o!  !  !
+|y1234567890|g12345|n|->--^--< |=>--^--< |o>--^--<|O           ||y1234567890||g12345||n||->--^--< ||=>--^--< ||o>--^--< 
+|c15|n Spaces|6 |-!     ! |=!     ! |o!     !|O                ||c15||n Spaces||6 ||-!     ! ||=!     ! ||o!     !
+(||15 )|9 |-{-----} |={-----} |o{-----}|O                      (||||15 )||9 ||-{-----} ||={-----} ||o{-----}
+
+|-[|18-]|4 |g&m|=[|20-]|n&n|O            ||-[||18-]||4 ||g&&m||=[||20-]||n&&n||O
+|-!|18 !|4 |g&m|=!|20 !|n&n|O            ||-!||18 !||4 ||g&&m||=!||20 !||n&&n||O
+|->|18-<|4 &m|g|=>|20-<|n&n|O            ||->||18-<||4 &&m||g||=>||20-<||n&&n||O
+|-!|18 !|4 |g&m|=!|20 !|n&n|O            ||-!||18 !||4 ||g&&m||=!||20 !||n&&n||O
+|-{|18-}|4 |g&m|={|20-}|n&n|O            ||-{||18-}||4 ||g&&m||={||20-}||n&&n||O
+
+Repetition using || followed by the number of characters to repeat and then the character to repeat.
+||15* does the * character 15 times like this: |15*
+
+Longer repetition patterns using the character ~
+||3~     &&r||----||O> ALL YOUR ||kBASE||n ||3\~ARE||3\~ BELONG TO US. <||----||O&&n||\n~||n
+|3~     &r|----|O> ALL YOUR |kBASE|n |3\~ARE|3\~ BELONG TO US. <|----|O&n|\n~|n'
+
+if(ARGV[0] == nil)
+  puts "#{File.basename(__FILE__)} <filename> | <pipetext>"
+  puts
+  puts "Example usage:"
+  puts
+  puts "pipetext '|RBright red|n, |cCyan|n, |g&rGreen and Red|n,&n Normal |R|u1f49c |g|U2714|n'"
+  puts
+  puts "pipetext '|50-'"
+  puts
+  puts "pipetext '|-|50-'"
+  puts
+  puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
+  puts
+  pipe.paint(pipetext_example)
+else
+  begin
+    f = File.open(ARGV[0].to_s)
+  rescue
+  end
+  if(f != nil)
+    pipe.paint(f.read)
+  else
+    pipe.paint(ARGV[0].to_s)
+  end
+end
