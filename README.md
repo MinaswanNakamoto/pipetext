@@ -23,4 +23,5 @@ alice.say("Hello world!")
 The gem includes a command line interface too (you can find the script in bin):
 
 > pipetext
+
 > pipetext '|Ccyan|n'
