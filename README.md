@@ -8,6 +8,7 @@ Install using the Ruby Gem:
 
 Includes a Ruby library module which can be included in your code:
 
+```
 require 'pipetext'
 
 class Alice
@@ -19,6 +20,7 @@ end
 
 alice = Alice.new
 alice.say("Hello world!")
+```
 
 The gem includes a command line interface too (you can find the script in bin):
 
