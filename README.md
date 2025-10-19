@@ -31,4 +31,4 @@ The gem includes a command line interface too:
 > pipetext '|Ccyan|n'
 ```
 
-Use the ++pipetext++ command to see other options and examples.
+Use the **pipetext** command to see other options and examples.
