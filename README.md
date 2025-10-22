@@ -31,4 +31,13 @@ The gem includes a command line interface too:
 > pipetext '|Ccyan|n'
 ```
 
+You can also clone from git:
+```
+> git clone https://github.com/MinaswanNakamoto/pipetext.git
+> ruby pipetext/example.rb
+> cd pipetext/bin
+> chmod +x pipetext
+> ./pipetext
+```
+
 Use the **pipetext** command to see other options and examples.
