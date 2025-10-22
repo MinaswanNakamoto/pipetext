@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 # Use local file
-require 'lib/pipetext'
+require_relative 'lib/pipetext'
 
 # Use gem install
 #require 'pipetext'
