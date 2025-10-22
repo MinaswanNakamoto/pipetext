@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
+# Use local file
 require 'lib/pipetext'
+
+# Use gem install
+#require 'pipetext'
 
 class Alice
   include PipeText
