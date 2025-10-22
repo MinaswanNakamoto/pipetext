@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 
-require 'pipetext'
+# Use local file
+require '../lib/pipetext'
+
+# Use gem install
+#require 'pipetext'
 
 pipe = Class.new.extend(PipeText)
 
