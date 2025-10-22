@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'pipetext'
+require 'lib/pipetext'
 
 class Alice
   include PipeText
