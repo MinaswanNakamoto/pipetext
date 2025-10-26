@@ -1,3 +1,5 @@
+require_relative 'substitute_emoji_names.rb'
+
 module PipeText
 
   public
@@ -33,6 +35,7 @@ module PipeText
       'bg'              => String.new      # Needed to restore after foreground change
     }
     new_text = String.new
+    text = substitute_emojis(text)
     text.chars.each do |character|
       process_character(character, new_text, attributes)
     end
@@ -44,7 +47,7 @@ module PipeText
     elsif(attributes['unicode_capture'] > 0)
       emit_unicode(new_text, attributes)
     end
-    return new_text
+    new_text
   end
 
   def write(text, box_mode = true, ampersand_mode = false)
@@ -661,5 +664,12 @@ module PipeText
     else
       character
     end
+  end
+
+  def substitute_emojis(text)
+    $substitute_emoji_names.each do |key, value|
+      text = text.gsub(/\|\[#{key}\]/i, value)
+    end
+    text
   end
 end
