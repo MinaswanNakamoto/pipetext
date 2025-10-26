@@ -26,7 +26,10 @@ pipetext_example = '|| pipe  ||||    && ampersand    &&&&    |&Toggle (&) backgr
 |g&ygreen with yellow background&n       |n||g&&y       |.Faint|.           ||.
 |G&rbright green with red background&n   |n||G&&r       |xCrossed out|x     ||x
 |n&nnormal color and background        ||n&&n       Escape Sequence ||\\
-Example unicode sequences:      |U2714  ||U2714     |U274c ||U274c     |u262E ||u262E     |u1f48e ||u1f48e     |u1f49c ||u1f49c
+
+Example unicode sequences:  https://unicode.org/emoji/charts/full-emoji-list.html
+||[CLDR Short Name]          |[gear]  ||[gear |\b]   |[smiling face with heart-eyes] ||[smiling face with heart-eyes |\b]        |[zzz] ||[zzz |\b]
+                            |U2714  ||U2714    |U274c ||U274c     |u262E ||u262E     |u1f48e ||u1f48e     |u1f49c ||u1f49c
 
 Single or double line box mode with ||- or ||=
 
