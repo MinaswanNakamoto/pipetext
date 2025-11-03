@@ -23,6 +23,8 @@ module PipeText
       'box'             => -1,             # Default to |O (no boxes)
       'box_mode'        => box_mode,
       'num'             => 0,              # Number of times to repeat pattern
+      'emoji_capture'   => false,          # Used to capture emoji description
+      'emoji'           => String.new,     # Used to capture emoji description
       'unicode_capture' => 0,              # Used to capture Unicode using 6 character UTF-16 hex format
       'unicode'         => String.new,
       'palette_capture' => 0,              # Used to capture 8-bit color using 2 character hex format
@@ -35,7 +37,6 @@ module PipeText
       'bg'              => String.new      # Needed to restore after foreground change
     }
     new_text = String.new
-    text = substitute_emojis(text)
     text.chars.each do |character|
       process_character(character, new_text, attributes)
     end
@@ -46,6 +47,8 @@ module PipeText
       emit_palette_color(new_text, attributes)
     elsif(attributes['unicode_capture'] > 0)
       emit_unicode(new_text, attributes)
+    elsif(attributes['emoji_capture'] == true)
+      new_text << "|[" + attributes['emoji']
     end
     new_text
   end
@@ -57,6 +60,46 @@ module PipeText
   # Defaults to using & for background colors
   def paint(text, box_mode = true, ampersand_mode = true)
     puts(pipetext(text, box_mode, ampersand_mode))
+  end
+
+  def ignored_character(character, ignored_characters)
+    ignored_characters.chars.each do |ignored|
+      if(character == ignored)
+        return true
+      end
+    end
+    return false
+  end
+
+  # Match abbreviated text descriptions for emojis by default ignore case and punctuation
+  # Allows for 'space anchoring' so you can use |[smi f w he e] as an abbreviation for
+  # |[smiling face with heart-eyes]
+  def abbreviated_match(input, match, case_match=false, ignored_characters=",.':-")
+    if(!input || !match)
+      return 0
+    end
+    count = 0
+    offset = 0
+    input.chars.each_with_index do |character, index|
+      while(ignored_character(match[index + offset], ignored_characters))
+        offset += 1
+      end
+      if(character == match[index + offset])
+        count += 1
+      elsif(case_match == false && character.downcase == match[index + offset].downcase)
+        count += 1
+      elsif(character == ' ' && match[index + offset..-1] =~ / /)
+        count += 1
+        while(match[index + offset] != character)
+          offset += 1
+        end
+      else
+        count = 0
+        offset = 0
+        break
+      end  
+    end  
+    return count + offset
   end
 
   private
@@ -84,6 +127,12 @@ module PipeText
       capture_color(character, new_text, attributes)
     elsif(attributes['palette_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
       capture_palette_color(character, new_text, attributes)
+    elsif(attributes['emoji_capture'] == true)
+      if(character == ']')
+        emit_emoji(new_text, attributes)
+      else
+        attributes['emoji'] << character
+      end
     elsif(attributes['unicode_capture'] == 1 && character == '+') # Skip
       return
     elsif(attributes['unicode_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
@@ -142,6 +191,41 @@ module PipeText
     new_text << [attributes['unicode'].to_i(16)].pack('U*')
     attributes['unicode_capture'] = 0
     attributes['unicode'] = String.new
+  end
+
+  def emit_emoji(new_text, attributes)
+    emoji = String.new
+    match_length = 0
+    value_length = 0
+    $substitute_emoji_names.each do |key, value|
+      if(attributes['emoji'] == key)                    # Use the most precise match first
+        emoji = value
+        break
+      elsif(attributes['emoji'].length <= key.length)   # Otherwise use shortest match
+        match = abbreviated_match(attributes['emoji'], key)
+        if(match == 0 && key =~ /-/)
+          match = abbreviated_match(attributes['emoji'], key.sub(/-/, ' '))
+        end
+        if(match > 0 && (match <= match_length || match_length == 0) && 
+            (value.length <= value_length || value_length == 0))
+          emoji = value
+          match_length = match
+          value_length = value.length
+        end
+      end
+    end
+    if(emoji == String.new)             # No match, put copy input
+      new_text << "|[" + attributes['emoji'] + "]"
+    else
+      emoji.split(/\|U/).each do |e|
+        if(e != "")
+          attributes['unicode'] = e.sub(/^\+?/, '')
+          emit_unicode(new_text, attributes)
+        end
+      end
+      attributes['emoji'] = String.new
+    end
+    attributes['emoji_capture'] = false
   end
 
   def process_pipe(character, new_text, attributes)
@@ -474,6 +558,8 @@ module PipeText
         else                                    # We didn't find the next character
           attributes['found'] = false
         end
+      when '['                                  # |[emoji]
+        attributes['emoji_capture'] = true
       when '\\'                                 # |\       - Escape mode
         attributes['pattern_escape'] = true
       else                                      # We didn't find the next character
@@ -664,12 +750,5 @@ module PipeText
     else
       character
     end
-  end
-
-  def substitute_emojis(text)
-    $substitute_emoji_names.each do |key, value|
-      text = text.gsub(/\|\[#{key}\]/i, value)
-    end
-    text
   end
 end
