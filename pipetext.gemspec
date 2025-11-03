@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "pipetext"
-  s.version     = "0.1.1"
+  s.version     = "0.1.2"
   s.summary     = "Use pipe (|) characters to easily add colors, boxes and emojis in the terminal."
   s.description = "== Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
   
@@ -27,6 +27,15 @@ Gem::Specification.new do |s|
   > pipetext
 
   > pipetext '|Ccyan|n'
+
+  Works with files:
+
+  > pipetext <filename>
+
+  Works with pipes too:
+
+  > echo '|RRed test |u1f49c|n' | pipetext
+
 ---
   | pipe  ||  & ampersand    &&  Toggle (&) background color mode  |&
   smoke   |s  white          |W  black text on white background    |k&w
@@ -48,9 +57,10 @@ Gem::Specification.new do |s|
   bright green with red background   |G&r      Crossed out     |x
   normal color and background        |n&n      Escape Sequence |\\
 ---
-  Example unicode sequences: https://unicode.org/emoji/charts/full-emoji-list.html
-  |[CLDR Short Name]         ⚙  |[gear]   😍 |[smiling face with heart-eyes]        💤 |[zzz]
-                             ✔  |U2714    ❌ |U274c     ☮ |u262E     💎 |u1f48e     💜 |u1f49c
+  Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
+         |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
+      ⚙  |[gear]   💤 |[zzz]   👨 |[man]    😍 |[sm f w he e]
+      ✔  |U2714    ❌ |U274c    ☮ |u262E    💎 |u1f48e    💜 |u1f49c
 ---
   Single or double line box mode with |- or |=
   
