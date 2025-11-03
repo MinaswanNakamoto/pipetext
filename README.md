@@ -31,6 +31,26 @@ The gem includes a command line interface too:
 > pipetext '|Ccyan|n'
 ```
 
+Allows for 'space anchoring' so you can use abbreviations. These are the same:
+
+```
+> pipetext '|[smi f w he e]'
+
+> pipetext '|[smiling face with heart eyes]'
+```
+
+Works with files:
+
+```
+> pipetext <filename>
+```
+
+Works with pipes too:
+
+```
+> echo '|RRed test |u1f49c|n' | pipetext
+```
+
 You can also clone from git:
 ```
 > git clone https://github.com/MinaswanNakamoto/pipetext.git
@@ -61,9 +81,10 @@ You can also clone from git:
   bright green with red background   |G&r      Crossed out     |x
   normal color and background        |n&n      Escape Sequence |\
 
-  Example unicode sequences: https://unicode.org/emoji/charts/full-emoji-list.html
-  |[CLDR Short Name]         ⚙  |[gear]   😍 |[smiling face with heart-eyes]        💤 |[zzz]
-                             ✔  |U2714    ❌ |U274c     ☮ |u262E     💎 |u1f48e     💜 |u1f49c
+  Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
+         |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
+      ⚙  |[gear]   💤 |[zzz]   👨 |[man]    😍 |[sm f w he e]
+      ✔  |U2714    ❌ |U274c    ☮ |u262E    💎 |u1f48e    💜 |u1f49c
 
   Single or double line box mode with |- or |=
   
