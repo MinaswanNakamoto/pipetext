@@ -4,7 +4,7 @@ module PipeText
 
   public
 
-  def pipetext(text, box_mode = true, ampersand_mode = false)
+  def pipetext_init(box_mode=true, ampersand_mode=false)
     attributes = {
       'pipe'            => false,          # Pipe already been found?
       'repeat_pattern'  => false,          # Used by |<#>~repeat pattern~
@@ -23,6 +23,8 @@ module PipeText
       'box'             => -1,             # Default to |O (no boxes)
       'box_mode'        => box_mode,
       'num'             => 0,              # Number of times to repeat pattern
+      'end_capture'     => false,          # Used to capture the end column number
+      'end'             => 0,              # Number which current denotes the end of the column
       'emoji_capture'   => false,          # Used to capture emoji description
       'emoji'           => String.new,     # Used to capture emoji description
       'unicode_capture' => 0,              # Used to capture Unicode using 6 character UTF-16 hex format
@@ -36,6 +38,9 @@ module PipeText
       'fg'              => String.new,     # Needed to restore after background change
       'bg'              => String.new      # Needed to restore after foreground change
     }
+  end
+
+  def pipe(text, attributes)
     new_text = String.new
     text.chars.each do |character|
       process_character(character, new_text, attributes)
@@ -50,15 +55,19 @@ module PipeText
     elsif(attributes['emoji_capture'] == true)
       new_text << "|[" + attributes['emoji']
     end
-    new_text
+    return new_text
   end
 
-  def write(text, box_mode = true, ampersand_mode = false)
+  def pipetext(text, box_mode=true, ampersand_mode=false)
+    pipe(text, pipetext_init(box_mode, ampersand_mode))
+  end
+
+  def write(text, box_mode=true, ampersand_mode=false)
     puts(pipetext(text, box_mode, ampersand_mode))
   end
 
   # Defaults to using & for background colors
-  def paint(text, box_mode = true, ampersand_mode = true)
+  def paint(text, box_mode=true, ampersand_mode=true)
     puts(pipetext(text, box_mode, ampersand_mode))
   end
 
@@ -102,6 +111,24 @@ module PipeText
     return count + offset
   end
 
+  # This is not entirely accurate because of emojis
+  def printable_length(string)
+    length = 0
+    escape = false
+    string.chars.each do |character|
+      if(character.ord == 27)
+        escape = true
+      elsif(character.ord >= 32)
+        if(escape == true && character.ord == 109)
+          escape = false
+        elsif(escape == false)
+          length += 1
+        end
+      end
+    end
+    return length
+  end
+
   private
 
   def process_character(character, new_text, attributes)
@@ -116,7 +143,23 @@ module PipeText
         emit_unicode(new_text, attributes)
       end
     end
-    if(character == '|' && attributes['repeat_pattern'] == false)
+    if(attributes['end_capture'] == true && character !~ /[0-9]/)
+      attributes['end'] = attributes['num']
+      attributes['num'] = 0
+      attributes['end_capture'] = false
+    end
+    if(attributes['end_capture'] == true && character =~ /[0-9]/)
+      if(character == '0')                      # |10+
+        if(attributes['num'] > 0)
+          attributes['num'] *= 10
+        end
+      elsif(character >= '1' && character <= '9')  # |1+ through |9+
+        if(attributes['num'] > 0)
+          attributes['num'] *= 10
+        end
+        attributes['num'] += character.to_i
+      end
+    elsif(character == '|' && attributes['repeat_pattern'] == false)
       process_pipe(character, new_text, attributes)
     elsif(character == '~' && attributes['pipe'] == true &&
         attributes['num'] > 0 && attributes['pattern_escape'] == false)
@@ -240,8 +283,7 @@ module PipeText
   def process_repeat_pattern(character, new_text, attributes)
     if(attributes['repeat_pattern'] == true)  # ~ at end of |5~Repeat 5 times~
       attributes['num'].times do
-        new_text << pipetext(attributes['pattern'], attributes['box_mode'],
-            attributes['ampersand_mode'])
+        new_text << pipetext(attributes['pattern'], attributes['box_mode'], attributes['ampersand_mode'])
       end
       attributes['num'] = 0
       attributes['pipe'] = false
@@ -558,6 +600,17 @@ module PipeText
         else                                    # We didn't find the next character
           attributes['found'] = false
         end
+      when ';'                                  # extend to end column with spaces
+        if(new_text =~ /\n?(.*)\Z/)
+          spaces = attributes['end'] - printable_length($1)
+        else
+          spaces = attributes['end']
+        end
+        spaces.times do
+          new_text << " "
+        end
+      when ']'                                  # |]0-9 - end column number
+        attributes['end_capture'] = true
       when '['                                  # |[emoji]
         attributes['emoji_capture'] = true
       when '\\'                                 # |\       - Escape mode
@@ -588,16 +641,18 @@ module PipeText
             attributes['num'].times do
               new_text << process_box_one_replace(character)
             end
+            attributes['num'] = 0
           elsif(attributes['box'] == 2)
             attributes['num'].times do
               new_text << process_box_two_replace(character)
             end
+            attributes['num'] = 0
           else
             attributes['num'].times do
               new_text << character
             end
+            attributes['num'] = 0
           end
-          attributes['num'] = 0
         end
         attributes['pipe'] = false
       end
