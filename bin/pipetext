@@ -8,7 +8,7 @@ require_relative '../lib/pipetext'
 
 pipe = Class.new.extend(PipeText)
 
-pipetext_example = '|| pipe  ||||    && ampersand    &&&&    |&Toggle (&) background color mode  ||&|&
+pipetext_example = '|| pipe  ||||    && ampersand    &&&&    Toggle (&) background color mode  ||&
 |ssmoke   |n||s    |wwhite          |n||W    |k&wblack text on white background&n|n    ||k&&w
 |rred     |n||r    |Rbright red     |n||R    &rred background&n      &&r
 |ggreen   |n||g    |Gbright green   |n||G    &ggreen background&n    &&g
@@ -17,7 +17,7 @@ pipetext_example = '|| pipe  ||||    && ampersand    &&&&    |&Toggle (&) backgr
 |yyellow  |n||y    |Ybright yellow  |n||Y    &yyellow background&n   &&y
 |mmagenta |n||m    |Mbright magenta |n||M    &mmagenta background&n  &&m
 |#FFFFFF&#555555Hex RGB color codes:|n&n    Foreground ||#RRGGBB   Background      &&#RRGGBB
-|p33&pF8Palette colors (256) using Hex:|n&n    ||p33&&pF8   Clear Screen    ||!
+|p33&pF8Palette colors (256) using Hex:|n&n    ||p33&&pF8   Clear screen    ||!
 |K&wblack with white background&n        |n||K&&w       |@Blink|@ing        ||@
 |w&mwhite with magenta background&n      |n||w&&m       |w&mi|invert&n|i          ||i
 |s&gsmoke with green background&n        |n||s&&g       |_Underline|_d      ||_
@@ -25,7 +25,9 @@ pipetext_example = '|| pipe  ||||    && ampersand    &&&&    |&Toggle (&) backgr
 |R&bbright red with blue background&n    |n||R&&b       |+Bold|+            ||+
 |g&ygreen with yellow background&n       |n||g&&y       |.Faint|.           ||.
 |G&rbright green with red background&n   |n||G&&r       |xCrossed out|x     ||x
-|n&nnormal color and background        ||n&&n       Escape Sequence ||\\
+|n&nnormal color and background        ||n&&n       Escape sequence ||\\
+
+Add spaces to line end             ||;         Set line end    ||]#     
 
 Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          ||[Abbreviated CLDR Short Name]     |[smiling face with heart-eyes] ||[smiling face with heart-eyes] or
@@ -63,6 +65,8 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts "pipetext '|50-'"
   puts
   puts "pipetext '|-|50-'"
+  puts
+  puts "pipetext '|]50Insert spaces until end (50)|;Add After'"
   puts
   puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
   puts
