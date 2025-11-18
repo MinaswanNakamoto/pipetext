@@ -81,6 +81,8 @@ You can also clone from git:
   bright green with red background   |G&r      Crossed out     |x
   normal color and background        |n&n      Escape Sequence |\
 
+  Add spaces to line end             |;         Set line end   |]#
+
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
       ⚙  |[gear]   💤 |[zzz]   👨 |[man]    😍 |[sm f w he e]
