@@ -25,8 +25,8 @@ module PipeText
       'num'             => 0,              # Number of times to repeat pattern
       'end_capture'     => false,          # Used to capture the end column number
       'end'             => 0,              # Number which current denotes the end of the column
-      'emoji_capture'   => false,          # Used to capture emoji description
-      'emoji'           => String.new,     # Used to capture emoji description
+      'emoji_capture'   => false,          # Used to capture emoji description or bell/move to position
+      'emoji'           => String.new,     # Used to capture emoji description or bell/move to position
       'unicode_capture' => 0,              # Used to capture Unicode using 6 character UTF-16 hex format
       'unicode'         => String.new,
       'palette_capture' => 0,              # Used to capture 8-bit color using 2 character hex format
@@ -172,7 +172,21 @@ module PipeText
       capture_palette_color(character, new_text, attributes)
     elsif(attributes['emoji_capture'] == true)
       if(character == ']')
-        emit_emoji(new_text, attributes)
+        if(attributes['emoji'] =~ /bell/)
+          new_text << "\a"
+          attributes['emoji'] = String.new
+          attributes['emoji_capture'] = false
+        elsif(attributes['emoji'] =~ /^([0-9]*)[,;]([0-9]*)$/)
+          new_text << "\e[#{$1};#{$2}H"
+          attributes['emoji'] = String.new
+          attributes['emoji_capture'] = false
+        elsif(attributes['emoji'] =~ /^([\.0-9]*)[zZ]$/)
+          attributes['emoji'] = String.new
+          attributes['emoji_capture'] = false
+          sleep($1.to_f)
+        else
+          emit_emoji(new_text, attributes)
+        end
       else
         attributes['emoji'] << character
       end
@@ -458,6 +472,18 @@ module PipeText
           new_text << "\e[25m"
           attributes['blink'] = false
         end
+      when '^'                                  # |^       - Move up 1 line
+        new_text << "\e[A"
+      when 'v', 'V'                             # |v       - Move down 1 line
+        new_text << "\e[B"
+      when '>'                                  # |>       - Move forward 1 character
+        new_text << "\e[C"
+      when '<'                                  # |<       - Move back 1 character
+        new_text << "\e[D"
+      when 'h'                                  # |h       - Hide cursor
+        new_text << "\e[?25l"
+      when 'H'                                  # |H       - Unhide cursor
+        new_text << "\e[?25h"
       when 'i', 'I'                             # |i       - Inverse
         if(attributes['inverse'] == false)
           new_text << "\e[7m"
