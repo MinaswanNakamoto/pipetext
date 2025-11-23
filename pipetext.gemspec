@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "pipetext"
-  s.version     = "0.1.4"
+  s.version     = "0.1.5"
   s.summary     = "Use pipe (|) characters to easily add colors, boxes and emojis in the terminal."
   s.description = "== Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
   
@@ -61,8 +61,8 @@ Gem::Specification.new do |s|
   Set current x,y cursor position    |[x,y]     Terminal bell  |[bell]
   Move cursor up 1 line              |^         Hide cursor    |h
   Move cursor down 1 line            |v         Unhide cursor  |H
-  Move cursor forward 1 character    |>
-  Move cursor back 1 character       |<         Sleep timer in float seconds |[#.#z]
+  Move cursor forward 1 character    |>         Sleep timer in seconds |[#s]
+  Move cursor back 1 character       |<         Sleep timer in milliseconds |[#ms]
 ---
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
@@ -91,8 +91,10 @@ Gem::Specification.new do |s|
 "
   s.authors     = ["Minaswan Nakamoto"]
   s.email       = "minaswan.nakamoto@onionmail.org"
-  s.files       = ["lib/pipetext.rb", "lib/substitute_emoji_names.rb", "bin/pipetext"]
+  s.files       = ["lib/pipetext.rb", "lib/pipetext/pipetext.rb", "lib/pipetext/version.rb",
+                   "lib/pipetext/substitute_emoji_names.rb", "bin/pipetext"]
   s.executables = ["pipetext"]
   s.homepage    = "https://github.com/MinaswanNakamoto/pipetext"
   s.license     = "MIT"
+  s.required_ruby_version = ">= 1.8.7"
 end
