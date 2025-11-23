@@ -1,10 +1,16 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-# Use local file
-require_relative '../lib/pipetext'
+# Allow older versions of Ruby to respond to the require_relative method
+if(!Kernel.respond_to?(:require_relative))
+  module Kernel
+    def require_relative(path)
+      require File.join(File.dirname(caller[0]), path.to_str)
+    end
+  end
+end
 
-# Use gem install
-#require 'pipetext'
+require_relative '../lib/pipetext.rb'
 
 pipe = Class.new.extend(PipeText)
 
@@ -31,8 +37,9 @@ Add spaces to line end             ||;         Set line end    ||]#
 Set current x,y cursor position    ||[x,y]     Terminal bell   ||[bell]
 Move cursor up 1 line              ||^         Hide cursor     ||h
 Move cursor down 1 line            ||v         Unhide cursor   ||H
-Move cursor forward 1 character    ||>
-Move cursor back 1 character       ||<         Sleep timer in float seconds ||[#.#z]
+Move cursor forward 1 character    ||>         Sleep timer in seconds ||[#s]
+Move cursor back 1 character       ||<         Sleep timer in milliseconds ||[#ms]
+
 
 Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          ||[Abbreviated CLDR Short Name]     |[smiling face with heart-eyes] ||[smiling face with heart-eyes] or
@@ -76,6 +83,7 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
   puts
   pipe.paint(pipetext_example)
+  pipe.paint("PipeText Version |c#{PipeText::VERSION}|n")
 else
   if(STDIN.tty? == false)
     pipe.paint(STDIN.read)
