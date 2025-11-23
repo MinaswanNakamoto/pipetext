@@ -87,8 +87,8 @@ chmod +x pipetext
   Set current x,y cursor position    |[x,y]     Terminal bell  |[bell]
   Move cursor up 1 line              |^         Hide cursor    |h
   Move cursor down 1 line            |v         Unhide cursor  |H
-  Move cursor forward 1 character    |>
-  Move cursor back 1 character       |<         Sleep timer in float seconds |[#.#z]
+  Move cursor forward 1 character    |>         Sleep timer in seconds |[#s]
+  Move cursor back 1 character       |<         Sleep timer in milliseconds |[#ms]
 
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
