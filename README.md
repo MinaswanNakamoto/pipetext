@@ -83,6 +83,7 @@ chmod +x pipetext
   bright green with red background   |G&r      Crossed out     |x
   normal color and background        |n&n      Escape Sequence |\
 
+  Center text using current position and line end number       |{text to center}
   Add spaces to line end             |;         Set line end   |]#
   Set current x,y cursor position    |[x,y]     Terminal bell  |[bell]
   Move cursor up 1 line              |^         Hide cursor    |h
