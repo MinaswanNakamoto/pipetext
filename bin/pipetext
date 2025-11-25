@@ -33,6 +33,7 @@ pipetext_example = '|| pipe  ||||    && ampersand    &&&&    Toggle (&) backgrou
 |G&rbright green with red background&n   |n||G&&r       |xCrossed out|x     ||x
 |n&nnormal color and background        ||n&&n       Escape sequence ||\\
 
+Center text using current position and line end number        ||{text to center}
 Add spaces to line end             ||;         Set line end    ||]#     
 Set current x,y cursor position    ||[x,y]     Terminal bell   ||[bell]
 Move cursor up 1 line              ||^         Hide cursor     ||h
@@ -78,7 +79,7 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts
   puts "pipetext '|-|50-'"
   puts
-  puts "pipetext '|]50Insert spaces until end (50)|;Add After'"
+  puts "pipetext '|]50Insert spaces until end (50)|W|{centered}|n|;Add After'"
   puts
   puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
   puts
