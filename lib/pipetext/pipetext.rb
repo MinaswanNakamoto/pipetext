@@ -25,6 +25,9 @@ module PipeText
       'num'             => 0,              # Number of times to repeat pattern
       'end_capture'     => false,          # Used to capture the end column number
       'end'             => 0,              # Number which current denotes the end of the column
+      'position'        => 0,              # Number which current position in the column
+      'center_capture'  => false,          # Used to capture text for centering
+      'center'          => String.new,     # Text to be centered
       'emoji_capture'   => false,          # Used to capture emoji description or bell/move to position
       'emoji'           => String.new,     # Used to capture emoji description or bell/move to position
       'unicode_capture' => 0,              # Used to capture Unicode using 6 character UTF-16 hex format
@@ -44,6 +47,11 @@ module PipeText
     new_text = String.new
     text.chars.each do |character|
       process_character(character, new_text, attributes)
+      if(new_text =~ /\n(.*)$/)
+        attributes['position'] = printable_length($1)
+      else
+        attributes['position'] += printable_length(new_text)
+      end
     end
     # Clean up in case we've captured something we didn't process yet
     if(attributes['color_capture'] > 0)
@@ -54,6 +62,8 @@ module PipeText
       emit_unicode(new_text, attributes)
     elsif(attributes['emoji_capture'] == true)
       new_text << "|[" + attributes['emoji']
+    elsif(attributes['center_capture'] == true)
+      new_text << "|{" + attributes['center']
     end
     return new_text
   end
@@ -62,13 +72,49 @@ module PipeText
     pipe(text, pipetext_init(box_mode, ampersand_mode))
   end
 
+  # Immediate output to screen, no string buffer
+  def fastpipe(text, attributes)
+    new_text = String.new
+    text.chars.each do |character|
+      process_character(character, new_text, attributes)
+      if(new_text != "")
+        print(new_text)
+        if(new_text =~ /\n(.*)$/)
+          attributes['position'] = printable_length($1)
+        else
+          attributes['position'] += printable_length(new_text)
+        end
+        new_text = String.new
+      end
+    end
+    # Clean up in case we've captured something we didn't process yet
+    if(attributes['color_capture'] > 0)
+      emit_color(new_text, attributes)
+    elsif(attributes['palette_capture'] > 0)
+      emit_palette_color(new_text, attributes)
+    elsif(attributes['unicode_capture'] > 0)
+      emit_unicode(new_text, attributes)
+    elsif(attributes['emoji_capture'] == true)
+      new_text << "|[" + attributes['emoji']
+    elsif(attributes['center_capture'] == true)
+      new_text << "|{" + attributes['center']
+    end
+    print(new_text)
+  end
+
+  def fastpipetext(text, box_mode=true, ampersand_mode=false)
+    fastpipe(text, pipetext_init(box_mode, ampersand_mode))
+  end
+
   def write(text, box_mode=true, ampersand_mode=false)
-    puts(pipetext(text, box_mode, ampersand_mode))
+    fastpipetext(text, box_mode, ampersand_mode)
+    puts
   end
 
   # Defaults to using & for background colors
   def paint(text, box_mode=true, ampersand_mode=true)
-    puts(pipetext(text, box_mode, ampersand_mode))
+    fastpipetext(text, box_mode, ampersand_mode)
+    puts
   end
 
   def ignored_character(character, ignored_characters)
@@ -170,6 +216,12 @@ module PipeText
       capture_color(character, new_text, attributes)
     elsif(attributes['palette_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
       capture_palette_color(character, new_text, attributes)
+    elsif(attributes['center_capture'] == true)
+      if(character == '}')
+        emit_center(new_text, attributes)
+      else
+        attributes['center'] << character
+      end
     elsif(attributes['emoji_capture'] == true)
       if(character == ']')
         if(attributes['emoji'] =~ /bell/)
@@ -252,6 +304,19 @@ module PipeText
     new_text << [attributes['unicode'].to_i(16)].pack('U*')
     attributes['unicode_capture'] = 0
     attributes['unicode'] = String.new
+  end
+
+  def emit_center(new_text, attributes)
+    spaces = attributes['end'] - attributes['position'] - printable_length(attributes['center'])
+    if(spaces > 0)
+      spaces /= 2
+      spaces.times do
+        new_text << " "
+      end
+    end
+    new_text << attributes['center']
+    attributes['center_capture'] = false
+    attributes['center'] = String.new
   end
 
   def emit_emoji(new_text, attributes)
@@ -629,12 +694,10 @@ module PipeText
         else                                    # We didn't find the next character
           attributes['found'] = false
         end
+      when '{'                                  # center
+        attributes['center_capture'] = true
       when ';'                                  # extend to end column with spaces
-        if(new_text =~ /\n?(.*)\Z/)
-          spaces = attributes['end'] - printable_length($1)
-        else
-          spaces = attributes['end']
-        end
+        spaces = attributes['end'] - attributes['position']
         spaces.times do
           new_text << " "
         end
