@@ -6,40 +6,43 @@ module PipeText
 
   def pipetext_init(box_mode=true, ampersand_mode=false)
     attributes = {
-      'pipe'            => false,          # Pipe already been found?
-      'repeat_pattern'  => false,          # Used by |<#>~repeat pattern~
-      'pattern'         => String.new,     # Used by |<#>~repeat pattern~ to capture
-      'pattern_escape'  => false,          # Has an escape \ already been found in front of this character?
-      'ampersand'       => false,          # Has an ampersand already been found in front of this character?
-      'ampersand_mode'  => ampersand_mode, # Do we even process ampersands for background colors?
-      'blink'           => false,          # Is blink turned on?
-      'bold'            => false,
-      'crossed_out'     => false,
-      'faint'           => false,
-      'found'           => false,          # At the end -- did we find a match?
-      'italic'          => false,
-      'inverse'         => false,
-      'underline'       => false,
-      'box'             => -1,             # Default to |O (no boxes)
-      'box_mode'        => box_mode,
-      'num'             => 0,              # Number of times to repeat pattern
-      'end_capture'     => false,          # Used to capture the end column number
-      'end'             => 0,              # Number which current denotes the end of the column
-      'position'        => 0,              # Number which current position in the column
-      'center_capture'  => false,          # Used to capture text for centering
-      'center'          => String.new,     # Text to be centered
-      'emoji_capture'   => false,          # Used to capture emoji description or bell/move to position
-      'emoji'           => String.new,     # Used to capture emoji description or bell/move to position
-      'unicode_capture' => 0,              # Used to capture Unicode using 6 character UTF-16 hex format
-      'unicode'         => String.new,
-      'palette_capture' => 0,              # Used to capture 8-bit color using 2 character hex format
-      'p'               => String.new,     # |p00 to |pFF
-      'color_capture'   => 0,              # Used to capture RGB color using #RRGGBB format
-      'r'               => String.new,
-      'g'               => String.new,
-      'b'               => String.new,
-      'fg'              => String.new,     # Needed to restore after background change
-      'bg'              => String.new      # Needed to restore after foreground change
+      'pipe'             => false,          # Pipe already been found?
+      'repeat_pattern'   => false,          # Used by |<#>~repeat pattern~
+      'pattern'          => String.new,     # Used by |<#>~repeat pattern~ to capture
+      'escape'           => false,          # Has an escape \ already been found in front of this character?
+      'ampersand'        => false,          # Has an ampersand already been found in front of this character?
+      'ampersand_mode'   => ampersand_mode, # Do we even process ampersands for background colors?
+      'blink'            => false,          # Is blink turned on?
+      'bold'             => false,
+      'crossed_out'      => false,
+      'faint'            => false,
+      'found'            => false,          # At the end -- did we find a match?
+      'italic'           => false,
+      'inverse'          => false,
+      'underline'        => false,
+      'box'              => -1,             # Default to |O (no boxes)
+      'box_mode'         => box_mode,
+      'num'              => 0,              # Number of times to repeat pattern
+      'end_capture'      => false,          # Used to capture the end column number
+      'end'              => 0,              # Number which current denotes the end of the column
+      'position'         => 0,              # Number which current position in the column
+      'center_capture'   => false,          # Used to capture text for centering
+      'center'           => String.new,     # Text to be centered
+      'variable_capture' => false,          # Used to capture a variable for update or to display
+      'variable'         => String.new,     # Variable captured
+      'variables'        => Hash.new,       # Stores all captured variables
+      'emoji_capture'    => false,          # Used to capture emoji description or bell/move to position
+      'emoji'            => String.new,     # Used to capture emoji description or bell/move to position
+      'unicode_capture'  => 0,              # Used to capture Unicode using 6 character UTF-16 hex format
+      'unicode'          => String.new,
+      'palette_capture'  => 0,              # Used to capture 8-bit color using 2 character hex format
+      'p'                => String.new,     # |p00 to |pFF
+      'color_capture'    => 0,              # Used to capture RGB color using #RRGGBB format
+      'r'                => String.new,
+      'g'                => String.new,
+      'b'                => String.new,
+      'fg'               => String.new,     # Needed to restore after background change
+      'bg'               => String.new      # Needed to restore after foreground change
     }
   end
 
@@ -64,6 +67,8 @@ module PipeText
       new_text << "|[" + attributes['emoji']
     elsif(attributes['center_capture'] == true)
       new_text << "|{" + attributes['center']
+    elsif(attributes['variable_capture'] == true)
+      new_text << "|(" + attributes['variable']
     end
     return new_text
   end
@@ -98,6 +103,8 @@ module PipeText
       new_text << "|[" + attributes['emoji']
     elsif(attributes['center_capture'] == true)
       new_text << "|{" + attributes['center']
+    elsif(attributes['variable_capture'] == true)
+      new_text << "|(" + attributes['variable']
     end
     print(new_text)
   end
@@ -205,22 +212,35 @@ module PipeText
         end
         attributes['num'] += character.to_i
       end
-    elsif(character == '|' && attributes['repeat_pattern'] == false)
-      process_pipe(character, new_text, attributes)
-    elsif(character == '~' && attributes['pipe'] == true &&
-        attributes['num'] > 0 && attributes['pattern_escape'] == false)
-      process_repeat_pattern(character, new_text, attributes)
-    elsif(attributes['repeat_pattern'] == true)
-      capture_character_pattern(character, attributes)
-    elsif(attributes['color_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
-      capture_color(character, new_text, attributes)
-    elsif(attributes['palette_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
-      capture_palette_color(character, new_text, attributes)
-    elsif(attributes['center_capture'] == true)
-      if(character == '}')
-        emit_center(new_text, attributes)
+    elsif(character == ')' && attributes['variable_capture'] == true && attributes['escape'] == false)
+      if(attributes['variable'] =~ /=/)         # Update
+        update_variable(attributes)
+      else                                      # Display
+        emit_variable(new_text, attributes)
+      end
+    elsif(attributes['variable_capture'] == true)
+      if(character == '\\')
+        attributes['escape'] = true
       else
-        attributes['center'] << character
+        if(attributes['escape'] == true)
+          attributes['variable'] << "\\#{character}"
+          attributes['escape'] = false
+        else
+          attributes['variable'] << character
+        end
+      end
+    elsif(attributes['center_capture'] == true)
+      if(character == '\\')
+        attributes['escape'] = true
+      else
+        if(attributes['escape'] == true)
+          attributes['center'] << "\\#{character}"
+          attributes['escape'] = false
+        elsif(character == '}')
+          emit_center(new_text, attributes)
+        else
+          attributes['center'] << character
+        end
       end
     elsif(attributes['emoji_capture'] == true)
       if(character == ']')
@@ -246,13 +266,24 @@ module PipeText
       else
         attributes['emoji'] << character
       end
+    elsif(character == '|' && attributes['repeat_pattern'] == false)
+      process_pipe(character, new_text, attributes)
+    elsif(character == '~' && attributes['pipe'] == true &&
+        attributes['num'] > 0 && attributes['escape'] == false)
+      process_repeat_pattern(character, new_text, attributes)
+    elsif(attributes['repeat_pattern'] == true)
+      capture_character_pattern(character, attributes)
+    elsif(attributes['color_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
+      capture_color(character, new_text, attributes)
+    elsif(attributes['palette_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
+      capture_palette_color(character, new_text, attributes)
     elsif(attributes['unicode_capture'] == 1 && character == '+') # Skip
       return
     elsif(attributes['unicode_capture'] > 0 && character =~ /[0-9,A-F,a-f]/)
       capture_unicode(character, new_text, attributes)
     elsif(attributes['pipe'] == true &&
         attributes['repeat_pattern'] == false &&
-        attributes['pattern_escape'] == true)
+        attributes['escape'] == true)
       process_escaped_character(character, new_text, attributes)
     elsif(character == '&' && attributes['ampersand_mode'] == true &&
         attributes['pipe'] == false)
@@ -306,8 +337,30 @@ module PipeText
     attributes['unicode'] = String.new
   end
 
+  def update_variable(attributes)
+    if(attributes['variable'] =~ /(.*)=(.*)/)
+      attributes['variables'][$1] = $2
+    end
+    attributes['variable_capture'] = false
+    attributes['variable'] = String.new
+  end
+
+  def emit_variable(new_text, attributes)
+    if(attributes['variables'][attributes['variable']])
+      new_text << pipetext(escape_fix(attributes['variables'][attributes['variable']]),
+          attributes['box_mode'], attributes['ampersand_mode'])
+    else
+      new_text << "|(" + attributes['variable'] + ")"
+    end
+    attributes['variable_capture'] = false
+    attributes['variable'] = String.new
+  end
+
   def emit_center(new_text, attributes)
     spaces = attributes['end'] - attributes['position'] - printable_length(attributes['center'])
+    if(printable_length(attributes['center']) % 2)
+      spaces += 1
+    end
     if(spaces > 0)
       spaces /= 2
       spaces.times do
@@ -370,7 +423,7 @@ module PipeText
       end
       attributes['num'] = 0
       attributes['pipe'] = false
-      attributes['pattern_escape'] = false
+      attributes['escape'] = false
       attributes['repeat_pattern'] = false
       attributes['pattern'] = String.new
     else                                # ~ after number in |5~Repeat 5 times~
@@ -380,7 +433,8 @@ module PipeText
 
   def escape_fix(text) # Done this way for old Ruby versions
     text = text.gsub(/\\a/, "\a").gsub(/\\b/, "\b").gsub(/\\e/, "\e").gsub(/\\f/, "\f")
-    text.gsub(/\\n/, "\n").gsub(/\\r/, "\r").gsub(/\\t/, "\t").gsub(/\\v/, "\v").gsub(/\\~/, '~')
+    text = text.gsub(/\\n/, "\n").gsub(/\\r/, "\r").gsub(/\\t/, "\t").gsub(/\\v/, "\v")
+    text = text.gsub(/\\~/, '~').gsub(/\\\(/, '(').gsub(/\\\)/, ')')
   end
 
   def process_escaped_character(character, new_text, attributes)
@@ -393,7 +447,7 @@ module PipeText
     end
     attributes['num'] = 0
     attributes['pipe'] = false
-    attributes['pattern_escape'] = false
+    attributes['escape'] = false
     attributes['pattern'] = String.new
     attributes['repeat_pattern'] = false
   end
@@ -417,11 +471,11 @@ module PipeText
 
   def capture_character_pattern(character, attributes)
     if(character == '\\')
-      attributes['pattern_escape'] = true
+      attributes['escape'] = true
     else
-      if(attributes['pattern_escape'] == true)
+      if(attributes['escape'] == true)
         attributes['pattern'] << "\\#{character}"
-        attributes['pattern_escape'] = false
+        attributes['escape'] = false
       else
         attributes['pattern'] << character
       end
@@ -701,17 +755,19 @@ module PipeText
         spaces.times do
           new_text << " "
         end
-      when ']'                                  # |]0-9 - end column number
+      when ']'                                  # |]0-9* - end column number
         attributes['end_capture'] = true
       when '['                                  # |[emoji]
         attributes['emoji_capture'] = true
+      when '('                                  # |(variable) or |(variable=Some value)
+        attributes['variable_capture'] = true
       when '\\'                                 # |\       - Escape mode
-        attributes['pattern_escape'] = true
+        attributes['escape'] = true
       else                                      # We didn't find the next character
         attributes['found'] = false
       end
     elsif(character == '\\')
-      attributes['pattern_escape'] = true
+      attributes['escape'] = true
     else                                        # We didn't find the next character
       attributes['found'] = false
     end
@@ -748,7 +804,7 @@ module PipeText
         end
         attributes['pipe'] = false
       end
-    elsif(attributes['pattern_escape'] == false)
+    elsif(attributes['escape'] == false)
       attributes['pipe'] = false
     end
   end
