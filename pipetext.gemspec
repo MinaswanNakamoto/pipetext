@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "pipetext"
-  s.version     = "0.2.1"
+  s.version     = "0.2.2"
   s.summary     = "Use pipe (|) characters to easily add colors, boxes and emojis in the terminal."
   s.description = "== Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
   
