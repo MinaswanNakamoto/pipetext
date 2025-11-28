@@ -87,7 +87,7 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts "pipetext '|(test=15)Print 10 stars: |(#test-=5)* and 20 hashes: |(#test+=5)#'"
   puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
   puts
-  pipe.paint("version |c#{PipeText::VERSION}|n")
+  pipe.paint("version |c#{PipeText::VERSION}|n\n")
 else
   if(STDIN.tty? == false)
     pipe.paint(STDIN.read)
