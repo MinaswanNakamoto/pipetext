@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "pipetext"
-  s.version     = "0.2.0"
+  s.version     = "0.2.1"
   s.summary     = "Use pipe (|) characters to easily add colors, boxes and emojis in the terminal."
   s.description = "== Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
   
@@ -62,9 +62,12 @@ Gem::Specification.new do |s|
   Set current x,y cursor position    |[x,y]     Terminal bell  |[bell]
   Move cursor up 1 line              |^         Hide cursor    |h
   Move cursor down 1 line            |v         Unhide cursor  |H
-  Move cursor forward 1 character    |>         Sleep timer in seconds |[#s]
+  Move cursor forward 1 character    |>         Sleep timer in seconds      |[#s]
   Move cursor back 1 character       |<         Sleep timer in milliseconds |[#ms]
-  Capture variable  |(variable name=data)       Display variable |(variable name)
+  Capture variable  |(variable name=data)       Display variable        |(variable name)
+  Add to variable   |(variable name+=data)      Subtract from variable  |(variable name-=data)
+  Multiple variable |(variable name*=data)      Divide variable         |(variable name/=data)
+  Copy variable to current number    |(#variable name)
 
 ---
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
