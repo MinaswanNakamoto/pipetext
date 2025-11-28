@@ -118,13 +118,11 @@ module PipeText
 
   def write(text, box_mode=true, ampersand_mode=false)
     fastpipetext(text, box_mode, ampersand_mode)
-    puts
   end
 
   # Defaults to using & for background colors
   def paint(text, box_mode=true, ampersand_mode=true)
     fastpipetext(text, box_mode, ampersand_mode)
-    puts
   end
 
   def ignored_character(character, ignored_characters)
