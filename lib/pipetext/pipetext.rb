@@ -44,6 +44,9 @@ module PipeText
       'fg'               => String.new,     # Needed to restore after background change
       'bg'               => String.new      # Needed to restore after foreground change
     }
+    attributes['variables']['height'] = `tput lines`.chomp
+    attributes['variables']['width'] = `tput cols`.chomp
+    return attributes
   end
 
   def pipe(text, attributes)
@@ -202,20 +205,20 @@ module PipeText
       attributes['end_capture'] = false
     end
     if(attributes['end_capture'] == true && character =~ /[0-9]/)
-      if(character == '0')                      # |10+
+      if(character == '0')                              # |10+
         if(attributes['num'] > 0)
           attributes['num'] *= 10
         end
-      elsif(character >= '1' && character <= '9')  # |1+ through |9+
+      elsif(character >= '1' && character <= '9')       # |1+ through |9+
         if(attributes['num'] > 0)
           attributes['num'] *= 10
         end
         attributes['num'] += character.to_i
       end
     elsif(character == ')' && attributes['variable_capture'] == true && attributes['escape'] == false)
-      if(attributes['variable'] =~ /=/)         # Update
+      if(attributes['variable'] =~ /=/ && attributes['variable'][0] != '#')     # Update
         update_variable(attributes)
-      else                                      # Display
+      else                                                                      # Display
         emit_variable(new_text, attributes)
       end
     elsif(attributes['variable_capture'] == true)
@@ -337,8 +340,37 @@ module PipeText
     attributes['unicode'] = String.new
   end
 
+  def number?(text)
+    text.chars.each do |character|
+      if(character !~ /[0-9 ]/)
+        return false
+      end
+    end
+    return true
+  end
+
   def update_variable(attributes)
-    if(attributes['variable'] =~ /(.*)=(.*)/)
+    if(attributes['variable'] =~ /(.*)\-=(.*)/)
+      if(!number?($2) || !number?(attributes['variables'][$1]))
+        attributes['variables'][$1].slice!($2)
+      elsif(attributes['variable'] =~ /(.*) \-= ?(.*)/ || attributes['variable'] =~ /(.*)\-= ?(.*)/)
+        value = attributes['variables'][$1].to_i - $2.to_i
+        attributes['variables'][$1] = value.to_s
+      end
+    elsif(attributes['variable'] =~ /(.*)\+=(.*)/)
+      if(!number?($2) || !number?(attributes['variables'][$1]))
+        attributes['variables'][$1] += $2
+      elsif(attributes['variable'] =~ /(.*) \+= ?(.*)/ || attributes['variable'] =~ /(.*)\+= ?(.*)/)
+        value = attributes['variables'][$1].to_i + $2.to_i
+        attributes['variables'][$1] = value.to_s
+      end
+    elsif(attributes['variable'] =~ /(.*) \*= ?(.*)/ || attributes['variable'] =~ /(.*)\*= ?(.*)/)
+      value = attributes['variables'][$1].to_i * $2.to_i
+      attributes['variables'][$1] = value.to_s
+    elsif(attributes['variable'] =~ /(.*) \/= ?(.*)/ || attributes['variable'] =~ /(.*)\/= ?(.*)/)
+      value = attributes['variables'][$1].to_i / $2.to_i
+      attributes['variables'][$1] = value.to_s
+    elsif(attributes['variable'] =~ /(.*) = ?(.*)/ || attributes['variable'] =~ /(.*)= ?(.*)/)
       attributes['variables'][$1] = $2
     end
     attributes['variable_capture'] = false
@@ -346,7 +378,30 @@ module PipeText
   end
 
   def emit_variable(new_text, attributes)
-    if(attributes['variables'][attributes['variable']])
+    if(attributes['variable'][0] == '#')        # We are manipulating attributes['num']
+      if(attributes['variable'][1..-1] =~ /(.*) \-= ?(.*)/ ||
+          attributes['variable'][1..-1] =~ /(.*)\-= ?(.*)/)
+        attributes['num'] = pipetext(escape_fix(attributes['variables'][$1]), attributes['box_mode'],
+            attributes['ampersand_mode']).to_i - $2.to_i
+      elsif(attributes['variable'][1..-1] =~ /(.*) \+= ?(.*)/ ||
+          attributes['variable'][1..-1] =~ /(.*)\+= ?(.*)/)
+        attributes['num'] = pipetext(escape_fix(attributes['variables'][$1]), attributes['box_mode'],
+            attributes['ampersand_mode']).to_i + $2.to_i
+      elsif(attributes['variable'][1..-1] =~ /(.*) \*= ?(.*)/ ||
+          attributes['variable'][1..-1] =~ /(.*)\*= ?(.*)/)
+        attributes['num'] = pipetext(escape_fix(attributes['variables'][$1]), attributes['box_mode'],
+            attributes['ampersand_mode']).to_i * $2.to_i
+      elsif(attributes['variable'][1..-1] =~ /(.*) \/= ?(.*)/ ||
+          attributes['variable'][1..-1] =~ /(.*)\/= ?(.*)/)
+        attributes['num'] = pipetext(escape_fix(attributes['variables'][$1]), attributes['box_mode'],
+            attributes['ampersand_mode']).to_i / $2.to_i
+      else
+        attributes['num'] = pipetext(escape_fix(attributes['variables'][attributes['variable'][1..-1]]),
+            attributes['box_mode'], attributes['ampersand_mode']).to_i
+      end
+      attributes['pipe'] = true
+      attributes['found'] = false
+    elsif(attributes['variables'][attributes['variable']])
       new_text << pipetext(escape_fix(attributes['variables'][attributes['variable']]),
           attributes['box_mode'], attributes['ampersand_mode'])
     else
