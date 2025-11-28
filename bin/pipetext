@@ -38,9 +38,12 @@ Add spaces to line end             ||;         Set line end    ||]#
 Set current x,y cursor position    ||[x,y]     Terminal bell   ||[bell]
 Move cursor up 1 line              ||^         Hide cursor     ||h
 Move cursor down 1 line            ||v         Unhide cursor   ||H
-Move cursor forward 1 character    ||>         Sleep timer in seconds ||[#s]
+Move cursor forward 1 character    ||>         Sleep timer in seconds      ||[#s]
 Move cursor back 1 character       ||<         Sleep timer in milliseconds ||[#ms]
-Capture variable  ||(variable name=data)       Display variable ||(variable name)
+Capture variable  ||(variable name=data)       Display variable        ||(variable name)
+Add to variable   ||(variable name+=data)      Subtract from variable  ||(variable name-=data)
+Multiple variable ||(variable name*=data)      Divide variable         ||(variable name/=data)
+Copy variable to current number    ||(#variable name)
 
 Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          ||[Abbreviated CLDR Short Name]     |[smiling face with heart-eyes] ||[smiling face with heart-eyes] or
@@ -81,6 +84,7 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts "pipetext '|]50Insert spaces until end (50)|W|{centered}|n|;Add After'"
   puts "pipetext 'Capture a variable named gear line|(gear line=|r|[gear]|n|-|60-|O|r|[gear]|n)|\\n" +
        "|(gear line)|\\n|(gear line)|\\n|(gear line)|\\n||(gear line) = |(gear line)'"
+  puts "pipetext '|(test=15)Print 10 stars: |(#test-=5)* and 20 hashes: |(#test+=5)#'"
   puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
   puts
   pipe.paint("version |c#{PipeText::VERSION}|n")
