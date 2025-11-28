@@ -90,7 +90,10 @@ chmod +x pipetext
   Move cursor down 1 line            |v         Unhide cursor  |H
   Move cursor forward 1 character    |>         Sleep timer in seconds |[#s]
   Move cursor back 1 character       |<         Sleep timer in milliseconds |[#ms]
-  Capture variable  |(variable name=data)       Display variable |(variable name)
+  Capture variable  |(variable name=data)       Display variable        |(variable name)
+  Add to variable   |(variable name+=data)      Subtract from variable  |(variable name-=data)
+  Multiple variable |(variable name*=data)      Divide variable         |(variable name/=data)
+  Copy variable to current number    |(#variable name)
 
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
