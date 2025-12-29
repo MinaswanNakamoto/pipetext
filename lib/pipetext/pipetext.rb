@@ -53,7 +53,7 @@ module PipeText
     new_text = String.new
     text.chars.each do |character|
       process_character(character, new_text, attributes)
-      if(new_text =~ /\n(.*)$/)
+      if(new_text =~ /.*\n(.*)$/m)
         attributes['position'] = printable_length($1)
       else
         attributes['position'] += printable_length(new_text)
