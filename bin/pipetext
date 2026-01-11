@@ -90,7 +90,7 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
   puts
   puts "Set your bash prompt:"
-  puts "PS1=$(pipetext '|g\\u|n@|g\\h|n:|g\\w|n$ ')"
+  puts "PS1=$(pipetext '|$|g\\u|n@|g\\h|n:|g\\w|n$ ')"
   puts
   pipe.paint("version |c#{PipeText::VERSION}|n\n")
 else
