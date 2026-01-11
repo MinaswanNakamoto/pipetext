@@ -23,7 +23,7 @@ pipetext_example = '|| pipe  ||||    && ampersand    &&&&    Toggle (&) backgrou
 |yyellow  |n||y    |Ybright yellow  |n||Y    &yyellow background&n   &&y
 |mmagenta |n||m    |Mbright magenta |n||M    &mmagenta background&n  &&m
 |#FFFFFF&#555555Hex RGB color codes:|n&n    Foreground ||#RRGGBB   Background      &&#RRGGBB
-|p33&pF8Palette colors (256) using Hex:|n&n    ||p33&&pF8   Clear screen    ||!
+|pC1&pF8Palette colors (256) |Rusing Hex|pC1:|n&n    ||pC1&&pF8   Clear screen    ||!
 |K&wblack with white background&n        |n||K&&w       |@Blink|@ing        ||@
 |w&mwhite with magenta background&n      |n||w&&m       |w&mi|invert&n|i          ||i
 |s&gsmoke with green background&n        |n||s&&g       |_Underline|_d      ||_
@@ -44,6 +44,8 @@ Capture variable  ||(variable name=data)       Display variable        ||(variab
 Add to variable   ||(variable name+=data)      Subtract from variable  ||(variable name-=data)
 Multiple variable ||(variable name*=data)      Divide variable         ||(variable name/=data)
 Copy variable to current number    ||(#variable name)
+
+||$ toggles \[ and \] around empty sequences automatically for bash command prompts
 
 Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          ||[Abbreviated CLDR Short Name]     |[smiling face with heart-eyes] ||[smiling face with heart-eyes] or
@@ -86,6 +88,9 @@ if(ARGV[0] == nil && STDIN.tty? == true)
        "|(gear line)|\\n|(gear line)|\\n|(gear line)|\\n||(gear line) = |(gear line)'"
   puts "pipetext '|(test=15)Print 10 stars: |(#test-=5)* and 20 hashes: |(#test+=5)#'"
   puts "pipetext '|10~     &r|----|O> ALL YOUR |kBASE|n |3\\~ARE|3\\~ BELONG TO US. <|----|O&n|\\n~|n'"
+  puts
+  puts "Set your bash prompt:"
+  puts "PS1=$(pipetext '|g\\u|n@|g\\h|n:|g\\w|n$ ')"
   puts
   pipe.paint("version |c#{PipeText::VERSION}|n\n")
 else
