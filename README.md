@@ -8,6 +8,12 @@ Install using the Ruby Gem:
 gem install pipetext
 ```
 
+Easily set your bash prompt colors using pipetext:
+
+```
+PS1=$(pipetext '|g\u|n@|g\h|n:|g\w|n$ ')
+```
+
 Includes a Ruby library module which can be included in your code:
 
 ```
@@ -95,6 +101,8 @@ chmod +x pipetext
   Multiple variable |(variable name*=data)      Divide variable         |(variable name/=data)
   Copy variable to current number    |(#variable name)
 
+  |$ toggles \[ and \] around empty sequences automatically for bash command prompts
+
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
       ⚙  |[gear]   💤 |[zzz]   👨 |[man]    😍 |[sm f w he e]
@@ -119,3 +127,4 @@ chmod +x pipetext
 
 ```
 Use the **pipetext** command to see other options and examples.
+
