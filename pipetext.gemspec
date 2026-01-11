@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "pipetext"
-  s.version     = "0.2.3"
+  s.version     = "0.2.4"
   s.summary     = "Use pipe (|) characters to easily add colors, boxes and emojis in the terminal."
   s.description = "== Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
   
@@ -8,17 +8,17 @@ Gem::Specification.new do |s|
   
   > gem install pipetext
   
-  Includes a Ruby library module which can be included in your code:
+  Includes a library module which can be included in your code:
   
   require 'pipetext'
-
+  
   class YellowPrinter
     include PipeText
     def print(string)
       write('|Y' + string + '|n')
     end
   end
-
+  
   printer = YellowPrinter.new
   printer.print('This is yellow')
   
@@ -27,6 +27,10 @@ Gem::Specification.new do |s|
   > pipetext
 
   > pipetext '|Ccyan|n'
+
+  Easily set your bash prompt colors using pipetext:
+
+  > PS1=$(pipetext '|g\\u|n@|g\\h|n:|g\\w|n$ ')
 
   Works with files:
 
@@ -68,6 +72,8 @@ Gem::Specification.new do |s|
   Add to variable   |(variable name+=data)      Subtract from variable  |(variable name-=data)
   Multiple variable |(variable name*=data)      Divide variable         |(variable name/=data)
   Copy variable to current number    |(#variable name)
+
+  |$ toggles \[ and \] around empty sequences automatically for bash command prompts
 
 ---
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
