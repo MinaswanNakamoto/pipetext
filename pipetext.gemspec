@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "pipetext"
-  s.version     = "0.2.4"
+  s.version     = "0.2.5"
   s.summary     = "Use pipe (|) characters to easily add colors, boxes and emojis in the terminal."
   s.description = "== Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
   
@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
 
   Easily set your bash prompt colors using pipetext:
 
-  > PS1=$(pipetext '|g\\u|n@|g\\h|n:|g\\w|n$ ')
+  > PS1=$(pipetext '|$|g\\u|n@|g\\h|n:|g\\w|n$ ')
 
   Works with files:
 
