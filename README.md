@@ -11,7 +11,7 @@ gem install pipetext
 Easily set your bash prompt colors using pipetext:
 
 ```
-PS1=$(pipetext '|g\u|n@|g\h|n:|g\w|n$ ')
+PS1=$(pipetext '|$|g\u|n@|g\h|n:|g\w|n$ ')
 ```
 
 Includes a Ruby library module which can be included in your code:
@@ -127,4 +127,3 @@ chmod +x pipetext
 
 ```
 Use the **pipetext** command to see other options and examples.
-
