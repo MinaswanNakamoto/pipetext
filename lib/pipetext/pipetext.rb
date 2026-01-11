@@ -42,7 +42,8 @@ module PipeText
       'g'                => String.new,
       'b'                => String.new,
       'fg'               => String.new,     # Needed to restore after background change
-      'bg'               => String.new      # Needed to restore after foreground change
+      'bg'               => String.new,     # Needed to restore after foreground change
+      'shell_prompt'     => false           # Used to add \[ and \] around non-printables for prompts
     }
     attributes['variables']['height'] = `tput lines`.chomp
     attributes['variables']['width'] = `tput cols`.chomp
@@ -165,7 +166,7 @@ module PipeText
     return count + offset
   end
 
-  # This is not entirely accurate because of emojis
+  # This is not entirely accurate because of emojis, which we assume are 2 characters
   def printable_length(string)
     length = 0
     escape = false
@@ -175,6 +176,8 @@ module PipeText
       elsif(character.ord >= 32)
         if(escape == true && character.ord == 109)
           escape = false
+        elsif(character.ord > 9600) # ~ Emoji / Unicode - double wide characters start
+          length += 2
         elsif(escape == false)
           length += 1
         end
@@ -250,7 +253,11 @@ module PipeText
           attributes['emoji'] = String.new
           attributes['emoji_capture'] = false
         elsif(attributes['emoji'] =~ /^([0-9]*)[,;]([0-9]*)$/)
-          new_text << "\e[#{$1};#{$2}H"
+          if(attributes['shell_prompt'] == true)
+            new_text << "\\[\e[#{$1};#{$2}H\\]"
+          else
+            new_text << "\e[#{$1};#{$2}H"
+          end
           attributes['emoji'] = String.new
           attributes['emoji_capture'] = false
         elsif(attributes['emoji'] =~ /^([0-9]*)s$/i)   # Sleep in seconds
@@ -309,10 +316,18 @@ module PipeText
     g = attributes['g'].to_i(16).to_s
     b = attributes['b'].to_i(16).to_s
     if(attributes['ampersand'] == true)        # Background Color
-      new_text << "\e[48;2;#{r};#{g};#{b}m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[48;2;#{r};#{g};#{b}m\\]"
+      else
+        new_text << "\e[48;2;#{r};#{g};#{b}m"
+      end
       attributes['ampersand'] = false
     else                                       # Foreground Color
-      new_text << "\e[38;2;#{r};#{g};#{b}m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[38;2;#{r};#{g};#{b}m\\]"
+      else
+        new_text << "\e[38;2;#{r};#{g};#{b}m"
+      end
     end
     attributes['color_capture'] = 0
     attributes['r'] = String.new
@@ -323,10 +338,18 @@ module PipeText
   def emit_palette_color(new_text, attributes)
     p = attributes['p'].to_i(16).to_s
     if(attributes['ampersand'] == true)        # Background Color
-      new_text << "\e[48;5;#{p}m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[48;5;#{p}m\\]"
+      else
+        new_text << "\e[48;5;#{p}m"
+      end
       attributes['ampersand'] = false
     else                                       # Foreground Color
-      new_text << "\e[38;5;#{p}m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[38;5;#{p}m\\]"
+      else
+        new_text << "\e[38;5;#{p}m"
+      end
     end
     attributes['palette_capture'] = 0
     attributes['p'] = String.new
@@ -571,6 +594,9 @@ module PipeText
   end
 
   def update_attributes(new_text, attributes)
+    if(attributes['shell_prompt'] == true)
+      new_text << "\\["
+    end
     if(attributes['bold'] == true)
       new_text << "\e[1m"
     end
@@ -592,6 +618,9 @@ module PipeText
     if(attributes['crossed_out'] == true)
       new_text << "\e[9m"
     end
+    if(attributes['shell_prompt'] == true)
+      new_text << "\\]"
+    end
   end
 
   def process_piped_character(character, new_text, attributes)
@@ -606,8 +635,15 @@ module PipeText
         end
         attributes['pipe'] = false
       when '!'                                  # |!       - Clear screen
-        new_text << "\e[H\e[J"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[H\e[J\\]"
+        else
+          new_text << "\e[H\e[J"
+        end
       when '+'                                  # |+       - Bold
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\["
+        end
         if(attributes['bold'] == false)
           new_text << "\e[1m"
           attributes['bold'] = true
@@ -615,7 +651,13 @@ module PipeText
           new_text << "\e[22m"
           attributes['bold'] = false
         end
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\]"
+        end
       when '.'                                  # |.       - Faint / Dim
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\["
+        end
         if(attributes['faint'] == false)
           new_text << "\e[2m"
           attributes['faint'] = true
@@ -623,7 +665,13 @@ module PipeText
           new_text << "\e[22m"
           attributes['faint'] = false
         end
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\]"
+        end
       when '~'                                  # |~       - Italic
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\["
+        end
         if(attributes['italic'] == false)
           new_text << "\e[3m"
           attributes['italic'] = true
@@ -631,7 +679,13 @@ module PipeText
           new_text << "\e[23m"
           attributes['italic'] = false
         end
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\]"
+        end
       when '_'                                  # |_       - Underline
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\["
+        end
         if(attributes['underline'] == false)
           new_text << "\e[4m"
           attributes['underline'] = true
@@ -639,13 +693,22 @@ module PipeText
           new_text << "\e[24m"
           attributes['underline'] = false
         end
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\]"
+        end
       when '@'                                  # |@       - Blink
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\["
+        end
         if(attributes['blink'] == false)
           new_text << "\e[5m"
           attributes['blink'] = true
         else
           new_text << "\e[25m"
           attributes['blink'] = false
+        end
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\]"
         end
       when '^'                                  # |^       - Move up 1 line
         new_text << "\e[A"
@@ -656,10 +719,21 @@ module PipeText
       when '<'                                  # |<       - Move back 1 character
         new_text << "\e[D"
       when 'h'                                  # |h       - Hide cursor
-        new_text << "\e[?25l"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[?25l\\]"
+        else
+          new_text << "\e[?25l"
+        end
       when 'H'                                  # |H       - Unhide cursor
-        new_text << "\e[?25h"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[?25h\\]"
+        else
+          new_text << "\e[?25h"
+        end
       when 'i', 'I'                             # |i       - Inverse
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\["
+        end
         if(attributes['inverse'] == false)
           new_text << "\e[7m"
           attributes['inverse'] = true
@@ -667,13 +741,22 @@ module PipeText
           new_text << "\e[27m"
           attributes['inverse'] = false
         end
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\]"
+        end
       when 'x', 'X'                             # |x       - Crossed Out
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\["
+        end
         if(attributes['crossed_out'] == false)
           new_text << "\e[9m"
           attributes['crossed_out'] = true
         else
           new_text << "\e[29m"
           attributes['crossed_out'] = false
+        end
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\]"
         end
       when '#'                                  # |#RRGGBB
         attributes['color_capture'] = 1
@@ -683,108 +766,176 @@ module PipeText
         attributes['unicode_capture'] = 1
       when 'K', 'k'                             # |K or |k - Foreground text black
         attributes['fg'] = "\e[30m"
-        new_text << "\e[0;30m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;30m\\]"
+        else
+          new_text << "\e[0;30m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'S', 's'                             # |S or |s - Foreground text smoke
         attributes['fg'] = "\e[1;30m"
-        new_text << "\e[1;30m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;30m\\]"
+        else
+          new_text << "\e[1;30m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'r'                                  # |r       - Foreground text red
         attributes['fg'] = "\e[31m"
-        new_text << "\e[0;31m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;31m\\]"
+        else
+          new_text << "\e[0;31m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'R'                                  # |R       - Foreground text bright red
         attributes['fg'] = "\e[1;31m"
-        new_text << "\e[1;31m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;31m\\]"
+        else
+          new_text << "\e[1;31m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'g'                                  # |g       - Foreground text green
         attributes['fg'] = "\e[32m"
-        new_text << "\e[0;32m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;32m\\]"
+        else
+          new_text << "\e[0;32m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'G'                                  # |G       - Foreground text bright green
         attributes['fg'] = "\e[1;32m"
-        new_text << "\e[1;32m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;32m\\]"
+        else
+          new_text << "\e[1;32m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'y'                                  # |y       - Foreground text yellow (brown)
         attributes['fg'] = "\e[33m"
-        new_text << "\e[0;33m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;33m\\]"
+        else
+          new_text << "\e[0;33m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'Y'                                  # |Y       - Foreground text bright yellow
         attributes['fg'] = "\e[1;33m"
-        new_text << "\e[1;33m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;33m\\]"
+        else
+          new_text << "\e[1;33m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'b'                                  # |b       - Foreground text blue
         attributes['fg'] = "\e[34m"
-        new_text << "\e[0;34m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;34m\\]"
+        else
+          new_text << "\e[0;34m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'B'                                  # |B       - Foreground text bright blue
         attributes['fg'] = "\e[1;34m"
-        new_text << "\e[1;34m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;34m\\]"
+        else
+          new_text << "\e[1;34m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'm'                                  # |m       - Foreground text magenta
         attributes['fg'] = "\e[35m"
-        new_text << "\e[0;35m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;35m\\]"
+        else
+          new_text << "\e[0;35m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'M'                                  # |M       - Foreground text bright magenta
         attributes['fg'] = "\e[1;35m"
-        new_text << "\e[1;35m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;35m\\]"
+        else
+          new_text << "\e[1;35m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'c'                                  # |c       - Foreground text cyan
         attributes['fg'] = "\e[36m"
-        new_text << "\e[0;36m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;36m\\]"
+        else
+          new_text << "\e[0;36m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'C'                                  # |C       - Foreground text bright cyan
         attributes['fg'] = "\e[1;36m"
-        new_text << "\e[1;36m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;36m\\]"
+        else
+          new_text << "\e[1;36m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'W', 'w'                             # |W or |w - Foreground text white
         attributes['fg'] = "\e[1;37m"
-        new_text << "\e[1;37m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[1;37m\\]"
+        else
+          new_text << "\e[1;37m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
         attributes['bold'] = true
         new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
       when 'N', 'n'                             # |N or |n - Foreground text normal
         attributes['fg'] = ""
-        new_text << "\e[0;37m"
+        if(attributes['shell_prompt'] == true)
+          new_text << "\\[\e[0;37m\\]"
+        else
+          new_text << "\e[0;37m"
+        end
         attributes['bold'] = false
         update_attributes(new_text, attributes)
-        new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
+        if(attributes['shell_prompt'] == true)
+          new_text << attributes['bg'] == "\e[0m" ? "" : "\\[" + attributes['bg'] + "\\]"
+        else
+          new_text << attributes['bg'] == "\e[0m" ? "" : attributes['bg']
+        end
       when 'O'                                  # |O - Box mode off
         attributes['box'] = -1
       when 'o'                                  # |o - Box mode 0
@@ -816,6 +967,12 @@ module PipeText
         attributes['variable_capture'] = true
       when '\\'                                 # |\       - Escape mode
         attributes['escape'] = true
+      when '$'                                  # |$       - Toggle shell prompt mode
+        if(attributes['shell_prompt'] == true)
+          attributes['shell_prompt'] = false
+        else
+          attributes['shell_prompt'] = true
+        end
       else                                      # We didn't find the next character
         attributes['found'] = false
       end
@@ -871,50 +1028,90 @@ module PipeText
       attributes['palette_capture'] = 1
       return
     when 'W', 'w'                               # &W or &w - Background white
-      new_text << "\e[0;47m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;47m\\]"
+      else
+        new_text << "\e[0;47m"
+      end
       attributes['bg'] = "\e[47m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'C', 'c'                               # &C or &c - Background cyan
-      new_text << "\e[0;46m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;46m\\]"
+      else
+        new_text << "\e[0;46m"
+      end
       attributes['bg'] = "\e[46m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'M', 'm'                               # &M or &m - Background magenta
-      new_text << "\e[0;45m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;45m\\]"
+      else
+        new_text << "\e[0;45m"
+      end
       attributes['bg'] = "\e[45m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'B', 'b'                               # &B or &b - Background blue
-      new_text << "\e[0;44m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;44m\\]"
+      else
+        new_text << "\e[0;44m"
+      end
       attributes['bg'] = "\e[44m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'Y', 'y'                               # &Y or &y - Background yellow (brown)
-      new_text << "\e[0;43m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;43m\\]"
+      else
+        new_text << "\e[0;43m"
+      end
       attributes['bg'] = "\e[43m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'G', 'g'                               # &G or &g - Background green
-      new_text << "\e[0;42m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;42m\\]"
+      else
+        new_text << "\e[0;42m"
+      end
       attributes['bg'] = "\e[42m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'R', 'r'                               # &R or &r - Background red
-      new_text << "\e[0;41m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;41m\\]"
+      else
+        new_text << "\e[0;41m"
+      end
       attributes['bg'] ="\e[41m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'S', 's', 'K', 'k'                     # &S, &s, &K, &k - Background black/smoke
-      new_text << "\e[0;40m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0;40m\\]"
+      else
+        new_text << "\e[0;40m"
+      end
       attributes['bg'] = "\e[40m"
       update_attributes(new_text, attributes)
       new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
     when 'N', 'n'                               # &N or &n - Background normal
-      new_text << "\e[0m"
+      if(attributes['shell_prompt'] == true)
+        new_text << "\\[\e[0m\\]"
+      else
+        new_text << "\e[0m"
+      end
       attributes['bg'] = ""
       update_attributes(new_text, attributes)
-      new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
+      if(attributes['shell_prompt'] == true)
+        new_text << attributes['fg'] == "\e[0m" ? "" : "\\[" + attributes['fg'] + "\\]"
+      else
+        new_text << attributes['fg'] == "\e[0m" ? "" : attributes['fg']
+      end
     else
       new_text << '&' + character
     end
