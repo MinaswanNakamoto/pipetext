@@ -168,20 +168,42 @@ module PipeText
 
   # This is not entirely accurate because of emojis, which we assume are 2 characters
   def printable_length(string)
+    if(string == "")
+      return 0
+    end
     length = 0
     escape = false
+    wide = false
+    wide_count = 0
     string.chars.each do |character|
-      if(character.ord == 27)
+      if(character[0].ord == 27)
         escape = true
-      elsif(character.ord >= 32)
-        if(escape == true && character.ord == 109)
+      elsif(character[0].ord == 226 && wide == false)
+        wide = true
+      elsif(character[0].ord == 240 && wide == false)
+        wide = true
+      elsif(character[0].ord >= 32)
+        if(escape == true && character[0].ord == 109)
           escape = false
-        elsif(character.ord > 9600) # ~ Emoji / Unicode - double wide characters start
+        elsif(character[0].ord > 9600) # ~ Emoji / Unicode - double wide characters start
           length += 2
-        elsif(escape == false)
+        elsif(escape == false && wide == false)
           length += 1
+        elsif(wide == true)
+          wide_count += 1
+        end
+        if(wide == true && wide_count >= 2)
+          if(character[0].ord == 147)
+            length += 1
+          end
+          length += 1
+          wide = false
+          wide_count = 0
         end
       end
+    end
+    if(wide == true && wide_count > 0)
+      length += 1
     end
     return length
   end
