@@ -195,10 +195,11 @@ module PipeText
         if(wide == true && wide_count >= 2)
           if(character[0].ord == 147)
             length += 1
+          else
+            length += 1
+            wide = false
+            wide_count = 0
           end
-          length += 1
-          wide = false
-          wide_count = 0
         end
       end
     end
