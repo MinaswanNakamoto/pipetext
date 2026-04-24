@@ -77,6 +77,7 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts "PipeText capabilities:"
   puts
   pipe.paint(pipetext_example)
+  puts
   puts "Command Syntax: #{File.basename(__FILE__)} <filename> | <pipetext>"
   puts "Example usages:"
   puts
