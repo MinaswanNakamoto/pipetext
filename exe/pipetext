@@ -1,5 +1,4 @@
 #!/usr/bin/env ruby
-# frozen_string_literal: true
 
 # Allow older versions of Ruby to respond to the require_relative method
 if(!Kernel.respond_to?(:require_relative))
@@ -10,12 +9,12 @@ if(!Kernel.respond_to?(:require_relative))
   end
 end
 
-require_relative '../lib/pipetext.rb'
+require_relative File.join("..", "lib", "pipetext", "pipetext.rb")
 
 pipe = Class.new.extend(PipeText)
 
 pipetext_example = '|| pipe  ||||    && ampersand    &&&&    Toggle (&) background color mode  ||&
-|ssmoke   |n||s    |wwhite          |n||W    |k&wblack text on white background&n|n    ||k&&w
+|wwhite   |n||w    |Wbright white   |n||W    |k&wblack text on white background&n|n    ||k&&w
 |rred     |n||r    |Rbright red     |n||R    &rred background&n      &&r
 |ggreen   |n||g    |Gbright green   |n||G    &ggreen background&n    &&g
 |bblue    |n||b    |Bbright blue    |n||B    &bblue background&n     &&b
@@ -26,7 +25,7 @@ pipetext_example = '|| pipe  ||||    && ampersand    &&&&    Toggle (&) backgrou
 |pC1&pF8Palette colors (256) |Rusing Hex|pC1:|n&n    ||pC1&&pF8   Clear screen    ||!
 |K&wblack with white background&n        |n||K&&w       |@Blink|@ing        ||@
 |w&mwhite with magenta background&n      |n||w&&m       |w&mi|invert&n|i          ||i
-|s&gsmoke with green background&n        |n||s&&g       |_Underline|_d      ||_
+|W&gbright white with green background&n |n||s&&g       |_Underline|_d      ||_
 |r&cred with cyan background&n           |n||r&&c       |~Italic|~s         ||~
 |R&bbright red with blue background&n    |n||R&&b       |+Bold|+            ||+
 |g&ygreen with yellow background&n       |n||g&&y       |.Faint|.           ||.
@@ -35,7 +34,7 @@ pipetext_example = '|| pipe  ||||    && ampersand    &&&&    Toggle (&) backgrou
 
 Center text using current position and line end number        ||{text to center}
 Add spaces to line end             ||;         Set line end    ||]#     
-Set current x,y cursor position    ||[x,y]     Terminal bell   ||[bell]
+Set current x,y cursor position    ||[x,y]     Terminal bell   ||[b]
 Move cursor up 1 line              ||^         Hide cursor     ||h
 Move cursor down 1 line            ||v         Unhide cursor   ||H
 Move cursor forward 1 character    ||>         Sleep timer in seconds      ||[#s]
@@ -49,8 +48,8 @@ Copy variable to current number    ||(#variable name)
 
 Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          ||[Abbreviated CLDR Short Name]     |[smiling face with heart-eyes] ||[smiling face with heart-eyes] or
-      |[gear]  ||[gear]   |[zzz] ||[zzz]   |[man] ||[man]    |[sm f w he e] ||[sm f w he e]
-      |U2714  ||U2714    |U274c ||U274c    |u262E ||u262E    |u1f48e ||u1f48e    |u1f49c ||u1f49c
+      |[gear] ||[gear]   |[zzz] ||[zzz]   |[man] ||[man]    |[sm f w he e] ||[sm f w he e]
+      |U2714  ||U2714    |U274c ||U274c   |u262E  ||u262E    |u1f48e ||u1f48e    |u1f49c ||u1f49c
 
 Single or double line box mode with ||- or ||=
 
@@ -77,7 +76,6 @@ if(ARGV[0] == nil && STDIN.tty? == true)
   puts "PipeText capabilities:"
   puts
   pipe.paint(pipetext_example)
-  puts
   puts "Command Syntax: #{File.basename(__FILE__)} <filename> | <pipetext>"
   puts "Example usages:"
   puts

@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = "pipetext"
-  s.version     = "0.2.7"
+  s.version     = "0.2.8"
   s.summary     = "Use pipe (|) characters to easily add colors, boxes and emojis in the terminal."
   s.description = "== Easily add colors, boxes, repetitions and emojis to your terminal output using pipes (|).
   
@@ -42,7 +42,7 @@ Gem::Specification.new do |s|
 
 ---
   | pipe  ||  & ampersand    &&  Toggle (&) background color mode  |&
-  smoke   |s  white          |W  black text on white background    |k&w
+  white   |w  white          |W  black text on white background    |k&w
   red     |r  bright red     |R  red background      &r
   green   |g  bright green   |G  green background    &g
   blue    |b  bright blue    |B  blue background     &b
@@ -54,7 +54,7 @@ Gem::Specification.new do |s|
   Palette colors (256) using Hex:    |p33&pF8  Clear Screen    |!
   black with white background        |K&w      Blinking        |@
   white with magenta background      |w&m      invert          |i
-  smoke with green background        |s&g      Underlined      |_
+  white with green background        |w&g      Underlined      |_
   red with cyan background           |r&c      Italics         |~
   bright red with blue background    |R&b      Bold            |+
   green with yellow background       |g&y      Faint           |.
@@ -79,7 +79,7 @@ Gem::Specification.new do |s|
   Emojis:  https://unicode.org/emoji/charts/full-emoji-list.html
          |[Abbreviated CLDR Short Name]     😍 |[smiling face with heart-eyes] or
       ⚙  |[gear]   💤 |[zzz]   👨 |[man]    😍 |[sm f w he e]
-      ✔  |U2714    ❌ |U274c    ☮ |u262E    💎 |u1f48e    💜 |u1f49c
+      ✔  |U2714    ❌ |U274c   ☮  |u262E    💎 |u1f48e    💜 |u1f49c
 ---
 
   Single or double line box mode with |- or |=
@@ -103,9 +103,9 @@ Gem::Specification.new do |s|
 "
   s.authors     = ["Minaswan Nakamoto"]
   s.email       = "minaswan.nakamoto@onionmail.org"
-  s.files       = ["lib/pipetext.rb", "lib/pipetext/pipetext.rb", "lib/pipetext/version.rb",
-                   "lib/pipetext/substitute_emoji_names.rb", "bin/pipetext"]
-  s.executables = ["pipetext"]
+  s.files       = Dir.glob(File.join("exe", "*")) + Dir.glob(File.join("lib", "**", "*"))
+  s.bindir = "exe"
+  s.executables = Dir.glob(File.join("exe", "*")).map { |f| f.sub(/exe./, "") }
   s.homepage    = "https://github.com/MinaswanNakamoto/pipetext"
   s.license     = "MIT"
   s.required_ruby_version = ">= 1.8.7"
