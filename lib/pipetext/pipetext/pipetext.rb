@@ -51,40 +51,29 @@ module PipeText
       "remap"            => Hash.new,       # Used to remap pipetext codes
       "shell_prompt"     => false           # Used to add \[ and \] around non-printables for prompts
     }
-#    attributes["variables"]["height"] = `tput lines`.chomp
-#    attributes["variables"]["width"] = `tput cols`.chomp
     attributes["variables"]["height"], attributes["variables"]["width"] = IO.console.winsize
     return attributes
   end
 
   def pipe(text, attributes)
     new_text = String.new
-#puts "start pos = #{attributes["position"]}"
     if(text != "")
-#puts "text = #{text.inspect}"
       if(attributes["remap"] != {})
-#puts "remap before = #{text.inspect}"
         attributes["remap"].each do |old, new|
           text.gsub!(old, new)
         end
-#puts "remap after = #{text.inspect}"
       end
       attributes["remap"] = Hash.new
-
       text.chars.each do |character|
         process_character(character, new_text, attributes)
         if(new_text =~ /.*\n(.*)$/m)
           attributes["position"] = printable_length($1)
         else
-  #        attributes["position"] += printable_length(character)
-  #        attributes["position"] += printable_length(new_text)
           attributes["position"] = printable_length(new_text)
         end
-  #puts "pos = #{attributes["position"]}"
       end
     end
-#puts "end pos = #{attributes["position"]}"
-    # Clean up in case we"ve captured something we didn"t process yet
+    # Clean up in case we've captured something we didn't process yet
     if(attributes["color_capture"] > 0)
       emit_color(new_text, attributes)
     elsif(attributes["palette_capture"] > 0)
@@ -122,7 +111,7 @@ module PipeText
         new_text = String.new
       end
     end
-    # Clean up in case we"ve captured something we didn"t process yet
+    # Clean up in case we've captured something we didn't process yet
     if(attributes["color_capture"] > 0)
       emit_color(new_text, attributes)
     elsif(attributes["palette_capture"] > 0)
@@ -296,11 +285,9 @@ module PipeText
         ord == 126980 ||
         ord == 127183 ||
         ord == 127374 ||
-        ord == 127377 ||
-        ord == 127378 ||
+        ord == 127377 || ord == 127378 ||
         ord == 127379 ||
-        ord == 127381 ||
-        ord == 127382 ||
+        ord == 127381 || ord == 127382 ||
         ord == 127383 ||
         (ord >= 127462 && ord <= 127487) ||
         (ord >= 127744 && ord <= 129791) ||
@@ -313,8 +300,6 @@ module PipeText
         (ord >= 196608 && ord <= 201546) ||
         (ord >= 201552 && ord <= 262143))
       return true
-#    elsif(character[1] != nil)
-#      return true
     end
     return false
   end
@@ -331,9 +316,7 @@ module PipeText
     zero_width_join = false
     last_was_wide = false
     country_code = false
-#puts "string = #{string.inspect}"
     string.chars.each do |character|
-#puts "char = #{character.inspect} - #{character[0].ord}"
       if(character[0].ord == 27)
         escape = true
       elsif(character[0].ord == 226 && wide == false)
@@ -387,11 +370,10 @@ module PipeText
     if(wide == true && wide_count > 0)
       length += 1
     end
-#puts "length = #{length}"
     return length
   end
 
-  def with_spinner(spinner="⠇⠏⠋⠙⠹⠸⣰⣠⣄⣆", colors=["|r", "|g", "|b", "|m"])
+  def with_spinner(spinner="⠇⠏⠋⠙⠹⠸⣰⣠⣄⣆", colors=["|n"])
     spinner_thread = Thread.new do
       count = 0
       if(colors == nil)
@@ -418,6 +400,29 @@ module PipeText
     ensure
       spinner_thread.kill
       fastpipetext("|H\b|n")
+    end
+  end
+
+  def with_spinner_mode(mode=0, &block)
+    if(mode == 0)
+      with_spinner(&block)
+    elsif(mode == 1)
+      with_spinner(["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘",
+                    "🌑", "🌘", "🌗", "🌖", "🌕", "🌔", "🌓", "🌒"], &block)
+    elsif(mode == 2)
+      with_spinner(["🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚", "🕛"], &block)
+    elsif(mode == 3)
+      with_spinner(["◐", "◓", "◑", "◒"], &block)
+    elsif(mode == 4)
+      with_spinner(["◜", "◠", "◝", "◞", "◡", "◟"], &block)
+    elsif(mode == 5)
+      with_spinner(["⠁", "⠂", "⠄", "⠂"], &block)
+    elsif(mode == 6)
+      with_spinner([" ", "▃", "▄", "▅", "▆", "▇", "█", "▇", "▆", "▅", "▄", "▃"], &block)
+    elsif(mode == 7)
+      with_spinner(["◰", "◳", "◲", "◱"], &block)
+    elsif(mode == 8)
+      with_spinner(["🔴", "🟠", "🟡", "🟢", "🔵", "🟣"], &block)
     end
   end
 
@@ -759,8 +764,6 @@ module PipeText
     end
     if(spaces > 0)
       spaces /= 2
-#puts "center | start = #{attributes["position"]}, end = #{attributes["end"]}"
-#puts "center | text = #{text.inspect}, length = #{length}, spaces = #{spaces}"
       spaces.times do
         new_text << " "
       end
@@ -773,9 +776,7 @@ module PipeText
   def emit_right(new_text, attributes)
     text = pipetext(attributes["right"], attributes["box_mode"], attributes["ampersand_mode"])
     length = printable_length(text)
-#puts "right | start = #{attributes["position"]}, end = #{attributes["end"]}"
     spaces = attributes["end"] - attributes["position"] - length
-#puts "right | text = #{text.inspect}, length = #{length}, spaces = #{spaces}"
     if(spaces > 0)
       spaces.times do
         new_text << " "
@@ -1064,26 +1065,18 @@ module PipeText
   end
 
   def max_line_length(line, max)
-#puts "mll = #{line.inspect}, #{max.inspect}"
     if(line =~ /^(.*)\|\\n(.*)$/m || line =~ /^([^\n]*)\n(.*)$/m)
       if($1 != nil)
-#puts "$1 = #{$1.inspect}"
         length = printable_length($1)
-#puts "len 1 = #{length}"
         if(length > max)
           max = length
-#puts "max 1 = #{max}"
         end
       end
-#puts "$2 = #{$2.inspect}"
       return max_line_length($2, max)
     elsif(line != nil)
       length = printable_length(line)
-#puts "line = #{line.inspect}"
-#puts "len 2 = #{length}"
       if(length > max)
         max = length
-#puts "max 2 = #{max}"
       end
     end
     return max
@@ -1282,7 +1275,6 @@ module PipeText
       else
         box["clip_children"] = false
       end
-#puts box.inspect
     end
   end
 
@@ -1334,7 +1326,6 @@ module PipeText
         join = false
       else
         box_set(text_x, text_y, collect + character, bg_color, fg_color)
-#        box_set(text_x, text_y, character, bg_color, fg_color + collect)
         collect = String.new
         text_x += 1
       end
@@ -1392,7 +1383,6 @@ module PipeText
   end
 
   def draw_box_frame(box, x, y, width, height)
-#puts "dbf y = #{y} x = #{x}, height = #{height}, width = #{width}"
     title_height = 0
     box_symbol = Hash.new
     wide_border = false
@@ -1406,8 +1396,6 @@ module PipeText
     end
     x_offset += box["outside_border"]
     y_offset += box["outside_border"]
-#puts "x_off0 = #{x_offset}"
-#puts "y_off0 = #{y_offset}"
     if(box["title"] != "")
       text_y = y + y_offset + 1
       text_x = x + x_offset + 1
@@ -1428,11 +1416,7 @@ module PipeText
       new_attributes["end"] -= (2 * x_offset)
       if(new_attributes["end"] > 0)
         new_attributes["position"] = 0
-#puts "title | start = #{new_attributes["position"]}, end = #{new_attributes["end"]}"
-#puts "title | text = #{box["title"].inspect}"
         box["title"] = pipe(box["title"], new_attributes)
-#puts "title | attrib = #{new_attributes.inspect}"
-#puts "title | pipe = #{box["title"].inspect}"
         if(text_y < y + height && box["title"] != "")
           box["title"].lines.each do |line|
             if(text_y < y + height)
@@ -1514,17 +1498,8 @@ module PipeText
     else
       x_offset += 1
     end
-#puts "x_off1 = #{x_offset}"
     y_offset += title_height
     y += title_height + 1
-
-#@drawing.each do |location, data|
-#  if(data["symbol"] != " ")
-#puts "#{location.inspect} = #{data.inspect}"
-#  end
-#end
-
-#puts "y_off1 = #{y_offset}, y = #{y}"
     return y, wide_border, x_offset, y_offset
   end
 
@@ -1555,7 +1530,6 @@ module PipeText
 #              box_set(column, row, " ", box["inside_border_background_color"], box["foreground_color"])
 #            end
 #          end
-
           if(row < y + y_offset + border_size || row >= y + height - y_offset - border_size - 2 ||
               column < x + x_offset + border_size || column > x + width - x_offset - border_size - 1)
             box_set(column, row, " ", box["inside_border_background_color"], box["foreground_color"])
@@ -1578,14 +1552,11 @@ module PipeText
   def draw_box_text(box, x, y, width, height, x_offset, y_offset)
     text_x = x + x_offset
     text_y = y + y_offset
-#puts "draw | text_x = #{text_x} | x = #{x} off = #{x_offset}, width = #{width}"
     new_attributes = pipetext_init
     new_attributes["remap"] = { "|n" => box["fg_pipe_color"], "&n" => box["bg_pipe_color"] }
     new_attributes["ampersand_mode"] = true
     new_attributes["end"] = width
     new_attributes["position"] = 0
-#puts "draw | start = #{new_attributes["position"]}, end = #{new_attributes["end"]}"
-#puts "draw | text = #{box["capture"].inspect}"
     box["capture"] = pipe(box["capture"], new_attributes)
     if(text_y < y + height && box["capture"] != "")
       box["capture"].lines.each do |line|
@@ -1605,22 +1576,13 @@ module PipeText
     inside_height = height - (y_offset * 2)
     current_x = inside_x
     current_y = inside_y
-
-#puts "child | x = #{x}, x_offset = #{x_offset}, width = #{width}"
-#puts "child | y = #{y}, y_offset = #{y_offset}, height = #{height}"
-#puts "child | inside_x = #{inside_x}, inside_width = #{inside_width}, current_x = #{current_x}"
-#puts "child | inside_y = #{inside_y}, inside_height = #{inside_height}, current_y = #{current_y}"
-
     attributes["box_attributes"].each do |index, inside_box|
       if(inside_box["parent"] == box_index)
         inside_width = inside_box["width"]
         inside_height = inside_box["height"]
-#puts "start | inside_height = #{inside_height}, inside_width = #{inside_width}"
         if(box["layout"] == "horizontal")
-#puts "horizontal"
           available_width = width - x_offset - current_x
           available_height = height - current_y - 1
-#puts "child2 | available_width = #{available_width}, available_height = #{available_height}"
           if(inside_box["grow"] == true)
             inside_width = available_width
             inside_height = available_height
@@ -1630,13 +1592,10 @@ module PipeText
             inside_height = [inside_height, available_height].min
           end
           if(inside_width > 2 && inside_height > 2)
-#puts "child2 | inside_x = #{inside_x}, inside_width = #{inside_width}, current_x = #{current_x}"
-#puts "child2 | inside_y = #{inside_y}, inside_height = #{inside_height}, current_y = #{current_y}"
             box_draw(attributes, index, current_x, current_y, inside_width, inside_height)
             current_x += inside_width
           end
         else
-#puts "vertical"
           available_width = (x + width - x_offset) - current_x
           available_height = (y + height - (2 * y_offset)) - current_y - 1
           if(inside_box["grow"] == true)
@@ -1676,12 +1635,10 @@ module PipeText
     draw_box_background(box, x, y, height, width)
     if(box["border_mode"] >= 0)
       y, wide_frame_border, x_offset, y_offset = draw_box_frame(box, x, y, width, height)
-#puts "x_off2 = #{x_offset}"
     end
     draw_box_inside_border(box, x, y, width, height, x_offset, y_offset, wide_frame_border)
     x_offset += box["inside_border"]
     y_offset += box["inside_border"]
-#puts "y_off2 = #{y_offset}, y = #{y}"
     text_width = width - (2 * box["outside_border"])
     text_height = height - (2 * box["outside_border"])
     if(box["border_mode"] >= 0)
@@ -1694,7 +1651,6 @@ module PipeText
     text_width -= (2 * box["inside_border"])
     text_height -= (2 * box["inside_border"])
     y = draw_box_text(box, x, y, text_width, text_height, x_offset, y_offset)
-#puts "y_off3 = #{y_offset}, y = #{y}"
     draw_box_children(attributes, box_index, x, y, width, height, x_offset, y_offset)
   end
 
@@ -1721,7 +1677,6 @@ module PipeText
           wide -= 1
         else
           if(double_wide_character(location["symbol"]))
-#puts "dw = #{location["symbol"].inspect}"
             wide += 1
           end
           bg = String.new
@@ -1745,7 +1700,6 @@ module PipeText
           previous_bg = bg
         end
       end
-#puts "row = #{row.inspect}"
       rendered_box << row.join
     end
     rendered_box.each do |line|
@@ -1920,15 +1874,6 @@ module PipeText
   end
 
   def process_piped_character(character, new_text, attributes)
-    if(attributes["remap"]["|#{character}"] != nil)
-#      character = attributes["remap"]["|#{character}"].sub(/^\|/, "")
-      attributes["remap"]["|#{character}"].sub(/^\|/, "").chars.each do |c|
-        process_character(c, new_text, attributes)
-      end
-puts "| remapped = |#{character.inspect}"
-puts new_text.inspect
-      return
-    end
     attributes["found"] = true                  # Assume we will find the next character
     if(attributes["num"] == 0)                  # We are not in repeat character mode
       case character
@@ -2123,8 +2068,6 @@ puts new_text.inspect
         end
       when "]"                                  # |]0-9* - end column number
         attributes["end_capture"] = true
-# this makes bugs, what does it solve?
-#        attributes["position"] = 0		# Reset position
       when "["                                  # |[emoji]
         attributes["emoji_capture"] = true
       when "("                                  # |(variable) or |(variable=Some value)
@@ -2186,14 +2129,6 @@ puts new_text.inspect
   end
 
   def process_ampersanded_character(character, new_text, attributes)
-    if(attributes["remap"]["&#{character}"] != nil)
-#      character = attributes["remap"]["&#{character}"].sub(/^&/, "")
-      attributes["remap"]["|#{character}"].sub(/^\&/, "").chars.each do |c|
-        process_character(c, new_text, attributes)
-      end
-puts "& remapped = &#{character.inspect}"
-      return
-    end
     case character
     when "#"                                    # &#RRGGBB
       attributes["color_capture"] = 1
